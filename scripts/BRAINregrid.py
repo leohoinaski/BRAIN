@@ -21,6 +21,7 @@ import geopandas as gpd
 import matplotlib
 from scipy.stats import gaussian_kde
 import scipy
+from shapely.geometry import Point
 # -------------------------------INPUTS----------------------------------------
 coarseDomain = 'MERRA'
 refinedDomain = 'BRAIN' 
@@ -67,7 +68,7 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[CO]
+pollutants=[O3]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -77,7 +78,7 @@ refinedDomain =  dataFolder+'/' + refinedDomain
 
 
 print('Looping for each variable')
-for pol in pollutants:
+for kk,pol in enumerate(pollutants):
     
     # ========BRAIN files============
     os.chdir(refinedDomain)
@@ -106,6 +107,8 @@ for pol in pollutants:
     # Selecting variable
     if pol['tag']=='CO':
         polMERRA = 'COSC'
+    elif pol['tag']=='O3':
+        polMERRA = 'TO3'
         
     dataMERRA = ds[polMERRA][:]
     timeMerra = ds['time'].time.data
@@ -165,7 +168,7 @@ for pol in pollutants:
     dataMERRAfiltered = np.array(dataMERRA[I,:,:])
     
     dataMERRAfiltered[np.isnan(dataBRAINinMERRA)] = np.nan
-    
+    dataBRAIN=dataBRAIN[idx,:,:,:]
     
     
     
@@ -282,39 +285,346 @@ for pol in pollutants:
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_'+pol['tag']+'.png', 
                 format="png",bbox_inches='tight')
+    
+    
     #%%
-    fig,ax = plt.subplots()
-    # xy = np.vstack([dataMERRAfiltered.flatten(),dataBRAINinMERRA.flatten()])
-    # xy = xy[:,~np.any(np.isnan(xy), axis=0)]
-    # z = gaussian_kde(xy)(xy)
-    ax.scatter(dataMERRAfiltered.flatten(),dataBRAINinMERRA.flatten(),
-               s=10,alpha=.3)
+    fig,ax = plt.subplots(1,4)
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(15*cm, 5*cm)
+    
+    xb = [np.nanmin(xvMERRA[~np.isnan(dataBRAINinMERRA)[0,:,:]]),
+          np.nanmax(xvMERRA[~np.isnan(dataBRAINinMERRA)[0,:,:]])]
+    yb = [np.nanmin(yvMERRA[~np.isnan(dataBRAINinMERRA)[0,:,:]]),
+          np.nanmax(yvMERRA[~np.isnan(dataBRAINinMERRA)[0,:,:]])]
+    
+    heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,np.nanmean(dataBRAIN[:,0,:,:],axis=0)*pol['conv'],
+                           vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                           np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                           vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                           np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
+                           #norm=matplotlib.colors.LogNorm(
+                           #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                           #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                           #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                           #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
+                           cmap='Spectral_r')
+    ax[0].set_xlim([xb[0], xb[1]])
+    ax[0].set_ylim([yb[0], yb[1]])
+    ax[0].set_xticks([])
+    ax[0].set_yticks([])
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,format="%.0f",
+                        #extend='both', 
+                        #ticks=bounds,
+                        #spacing='uniform',
+                        orientation='horizontal',
+                        #norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                        #                               vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
+                        )
+    #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
+    cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n a) BRAIN original', rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 2
+    cbar.ax.tick_params(labelsize=6)
+    
+    heatmap1 = ax[1].pcolor(lonMERRA,latMERRA,np.nanmean(dataBRAINinMERRA[:,:,:],axis=0),
+                            vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                            np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                            vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                            np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
+                            # norm=matplotlib.colors.LogNorm(
+                            #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                            #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                            #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                            #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
+                            cmap='Spectral_r')
+    ax[1].set_xlim([xb[0], xb[1]])
+    ax[1].set_ylim([yb[0], yb[1]])
+    ax[1].set_xticks([])
+    ax[1].set_yticks([])
+    cbar = fig.colorbar(heatmap1,fraction=0.04, pad=0.02,format="%.0f",
+                        #extend='both', 
+                        #ticks=bounds,
+                        #spacing='uniform',
+                        orientation='horizontal',
+                        #norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                        #                               vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
+                        )
+    #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
+    cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n b) BRAIN regrid', rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 2
+    cbar.ax.tick_params(labelsize=6)
+    
+    heatmap = ax[2].pcolor(lonMERRA,latMERRA,np.nanmean(dataMERRAfiltered[:,:,:],axis=0),
+                           vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                           np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                           vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                           np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
+                           # norm=matplotlib.colors.LogNorm(
+                           #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                           #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                           #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                           #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
+                           cmap='Spectral_r')
+    ax[2].set_xlim([xb[0], xb[1]])
+    ax[2].set_ylim([yb[0], yb[1]])
+    ax[2].set_xticks([])
+    ax[2].set_yticks([])
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,format="%.0f",
+                        #extend='both', 
+                        #ticks=bounds,
+                        #spacing='uniform',
+                        orientation='horizontal',
+                        norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                                                       vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
+                        )
+    #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
+    cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n c) MERRA2', rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 2
+    cbar.ax.tick_params(labelsize=6)
 
+    heatmap = ax[3].pcolor(lonMERRA,latMERRA,
+                 np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0),
+                 vmin=-np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
+                 vmax=np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
+                 #vmin=np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA)),
+                 #vmax=abs(np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA))),
+                 cmap='RdBu_r')
+    ax[3].set_xlim([xb[0], xb[1]])
+    ax[3].set_ylim([yb[0], yb[1]])
+    ax[3].set_xticks([])
+    ax[3].set_yticks([])
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,format="%.0f",
+                        #extend='both', 
+                        #ticks=bounds,
+                        #spacing='uniform',
+                        orientation='horizontal',
+                        #norm=matplotlib.colors.LogNorm()
+                        )
+    #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
+    cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n d) MERRA2 - BRAIN regrid', rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 2
+    cbar.ax.tick_params(labelsize=6)
+    
+    borda.boundary.plot(ax=ax[0],edgecolor='black',linewidth=0.3)
+    borda.boundary.plot(ax=ax[1],edgecolor='black',linewidth=0.3)
+    borda.boundary.plot(ax=ax[2],edgecolor='black',linewidth=0.3)
+    borda.boundary.plot(ax=ax[3],edgecolor='black',linewidth=0.3)
+    fig.tight_layout()
+    fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_average_'+pol['tag']+'.png', 
+                format="png",bbox_inches='tight')
+    
+    
+    #%%
+    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_regions.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    dataShp = gpd.read_file(shape_path)
+    
+    def dataINshape(xlon,ylat,uf):
+        s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
+        s = gpd.GeoDataFrame(geometry=s)
+        s.crs = "EPSG:4326"
+        s.to_crs("EPSG:4326")
+        uf.crs = "EPSG:4326"
+        pointIn = uf['geometry'].buffer(0.1).clip(s).explode()
+        pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
+        lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
+                            np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
+        s['mask']=0
+        s['mask'][lia]=1
+        cityMat = np.reshape(np.array(s['mask']),(xlon.shape[0],xlon.shape[1]))
+        return s,cityMat
+    
+    for sigla in dataShp['NM_MUN'].values:
+        uf = dataShp[dataShp['NM_MUN']==sigla]
+        xlon,ylat = xvMERRA,yvMERRA
+        
+        if sigla == 'Sul':
+            sigla='South'
+            c='Blue'
+        elif sigla=='Norte':
+            sigla='North'
+            c='Red'
+        elif sigla=='Sudeste':
+            sigla='Southeast'
+            c='Gray'
+        elif sigla=='Nordeste':
+            sigla='Northeast'
+            c='Orange'
+        elif sigla=='Centro-Oeste':
+            sigla='Midwest'
+            c='Brown'
+
+   
+        s,cityMat=dataINshape(xlon,ylat,uf)
+        #plt.pcolor(cityMat)
+
+        fig,ax = plt.subplots()
+        cm = 1/2.54  # centimeters in inches
+        fig.set_size_inches(7*cm, 7*cm)
+        xy = np.vstack([dataMERRAfiltered[:,cityMat==1].flatten(),dataBRAINinMERRA[:,cityMat==1].flatten()])
+        xy = xy[:,~np.any(np.isnan(xy), axis=0)]
+        #z = gaussian_kde(xy)(xy)
+        ax.scatter(xy[0,:],xy[1,:],
+                   s=6,alpha=.3,c=c)
+    
+        ###calculate Spearman correlation using new_df
+        corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
+       
+        ###insert text with Spearman correlation
+        # ax.annotate('ρ = {:.2f}'.format(corr), 
+        #         xy=(0.70, 0.9), xycoords='axes fraction', 
+        #         fontsize=8, ha='left', va='center')
+ 
+        ax.annotate('a) '+sigla+'\nρ = {:.2f}'.format(corr),
+                xy=(0.57, 0.1), xycoords='axes fraction', 
+                fontsize=8, ha='left', va='center')
+        
+        y,preds = xy[0,:],xy[1,:]
+        ax.set_xlabel('MERRA2\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=9)
+        ax.set_ylabel('BRAIN\n'+pol['tag'] + ' ('+pol['Unit']+')',fontsize=9)
+        ax.xaxis.set_tick_params(labelsize=8)
+        ax.yaxis.set_tick_params(labelsize=8)
+        
+        ax.set_aspect('equal')
+        ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
+                 [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+        ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
+                        np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
+                        alpha=0.2,facecolor='gray',edgecolor=None)
+        ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                        np.linspace(np.nanmax([y,preds]),np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                        np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0],dataMERRAfiltered.shape[0])*2,
+                        alpha=0.2,facecolor='gray',edgecolor=None)
+        ax.set_xlim([np.nanmin([y,preds]),np.nanmax([y,preds])])
+        ax.set_ylim([np.nanmin([y,preds]),np.nanmax([y,preds])])
+        fig.tight_layout()
+        #ax.set_yscale('log')
+        #ax.set_xscale('log')
+        fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
+                    format="png",bbox_inches='tight')
+        
+        
+    
+    # BRASIL TODO    
+    fig,ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(7*cm, 7*cm)
+    xy = np.vstack([dataMERRAfiltered.flatten(),dataBRAINinMERRA.flatten()])
+    xy = xy[:,~np.any(np.isnan(xy), axis=0)]
+    #z = gaussian_kde(xy)(xy)
+    ax.scatter(xy[0,:],xy[1,:],
+               s=6,alpha=.3,c='Cyan')
+    sigla='Domain'
     ###calculate Spearman correlation using new_df
-    corr, p_value = scipy.stats.spearmanr(dataMERRAfiltered.flatten(),dataBRAINinMERRA.flatten())
+    corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
    
     ###insert text with Spearman correlation
-    ax.annotate('ρ = {:.2f}'.format(corr), 
-            xy=(0.70, 0.9), xycoords='axes fraction', 
+    # ax.annotate('ρ = {:.2f}'.format(corr), 
+    #         xy=(0.70, 0.9), xycoords='axes fraction', 
+    #         fontsize=8, ha='left', va='center')
+
+    ax.annotate('a) '+sigla+'\nρ = {:.2f}'.format(corr),
+            xy=(0.57, 0.1), xycoords='axes fraction', 
             fontsize=8, ha='left', va='center')
     
-    y,preds = dataMERRAfiltered.flatten(),dataBRAINinMERRA.flatten()
+    y,preds = xy[0,:],xy[1,:]
     ax.set_xlabel('MERRA2\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=9)
     ax.set_ylabel('BRAIN\n'+pol['tag'] + ' ('+pol['Unit']+')',fontsize=9)
     ax.xaxis.set_tick_params(labelsize=8)
     ax.yaxis.set_tick_params(labelsize=8)
-    ax.set_xlim([np.min([y,preds]),np.max([y,preds])])
-    ax.set_ylim([np.min([y,preds]),np.max([y,preds])])
+    
     ax.set_aspect('equal')
-    ax.plot([np.nanmin(dataMERRAfiltered.flatten()), np.nanmax(dataMERRAfiltered.flatten())],
-             [np.nanmin(dataBRAINinMERRA.flatten()), np.nanmax(dataMERRAfiltered.flatten())], 'k-', lw=1,dashes=[2, 2])
-    ax.fill_between(np.linspace(np.nanmin(dataMERRAfiltered.flatten()), np.nanmax(dataMERRAfiltered.flatten()),dataMERRAfiltered.shape[0]), 
-                    np.linspace(np.nanmin(dataBRAINinMERRA.flatten()), np.nanmax(dataMERRAfiltered.flatten()),dataBRAINinMERRA.shape[0])*0.5,
+    ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
+             [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+    ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
+                    np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
                     alpha=0.2,facecolor='gray',edgecolor=None)
-    ax.fill_between(np.linspace(np.nanmin(dataMERRAfiltered.flatten()), np.nanmax(dataMERRAfiltered.flatten()),dataMERRAfiltered.shape[0]),
-                    np.linspace(np.nanmax(dataMERRAfiltered.flatten()),np.nanmax(dataMERRAfiltered.flatten()),dataMERRAfiltered.shape[0]),
-                    np.linspace(np.nanmin(dataBRAINinMERRA.flatten()), np.nanmax(dataMERRAfiltered.flatten()),dataBRAINinMERRA.shape[0],dataMERRAfiltered.shape[0])*2,
+    ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                    np.linspace(np.nanmax([y,preds]),np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                    np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0],dataMERRAfiltered.shape[0])*2,
                     alpha=0.2,facecolor='gray',edgecolor=None)
+    ax.set_xlim([np.nanmin([y,preds]),np.nanmax([y,preds])])
+    ax.set_ylim([np.nanmin([y,preds]),np.nanmax([y,preds])])
     fig.tight_layout()
+    fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
+                format="png",bbox_inches='tight')
     #ax.set_yscale('log')
     #ax.set_xscale('log')
+    
+    #%%
+    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    dataShp = gpd.read_file(shape_path)
+    
+    def dataINshape(xlon,ylat,uf):
+        s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
+        s = gpd.GeoDataFrame(geometry=s)
+        s.crs = "EPSG:4326"
+        s.to_crs("EPSG:4326")
+        uf.crs = "EPSG:4326"
+        pointIn = uf['geometry'].buffer(0.1).clip(s).explode()
+        pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
+        lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
+                            np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
+        s['mask']=0
+        s['mask'][lia]=1
+        cityMat = np.reshape(np.array(s['mask']),(xlon.shape[0],xlon.shape[1]))
+        return s,cityMat
+    
+    for sigla in dataShp['NM_PAIS'].values:
+        uf = dataShp[dataShp['NM_PAIS']==sigla]
+        xlon,ylat = xvMERRA,yvMERRA
+        
+        if sigla == 'Brasil':
+            sigla='Brazil'
+            c='gold'
+       
+
+   
+        s,cityMat=dataINshape(xlon,ylat,uf)
+        #plt.pcolor(cityMat)
+
+        fig,ax = plt.subplots()
+        cm = 1/2.54  # centimeters in inches
+        fig.set_size_inches(7*cm, 7*cm)
+        xy = np.vstack([dataMERRAfiltered[:,cityMat==1].flatten(),dataBRAINinMERRA[:,cityMat==1].flatten()])
+        xy = xy[:,~np.any(np.isnan(xy), axis=0)]
+        #z = gaussian_kde(xy)(xy)
+        ax.scatter(xy[0,:],xy[1,:],
+                   s=6,alpha=.3,c=c)
+    
+        ###calculate Spearman correlation using new_df
+        corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
+       
+        ###insert text with Spearman correlation
+        # ax.annotate('ρ = {:.2f}'.format(corr), 
+        #         xy=(0.70, 0.9), xycoords='axes fraction', 
+        #         fontsize=8, ha='left', va='center')
+ 
+        ax.annotate('a) '+sigla+'\nρ = {:.2f}'.format(corr),
+                xy=(0.57, 0.1), xycoords='axes fraction', 
+                fontsize=8, ha='left', va='center')
+        
+        y,preds = xy[0,:],xy[1,:]
+        ax.set_xlabel('MERRA2\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=9)
+        ax.set_ylabel('BRAIN\n'+pol['tag'] + ' ('+pol['Unit']+')',fontsize=9)
+        ax.xaxis.set_tick_params(labelsize=8)
+        ax.yaxis.set_tick_params(labelsize=8)
+        
+        ax.set_aspect('equal')
+        ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
+                 [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+        ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
+                        np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
+                        alpha=0.2,facecolor='gray',edgecolor=None)
+        ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                        np.linspace(np.nanmax([y,preds]),np.nanmax([y,preds]),dataMERRAfiltered.shape[0]),
+                        np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0],dataMERRAfiltered.shape[0])*2,
+                        alpha=0.2,facecolor='gray',edgecolor=None)
+        ax.set_xlim([np.nanmin([y,preds]),np.nanmax([y,preds])])
+        ax.set_ylim([np.nanmin([y,preds]),np.nanmax([y,preds])])
+        fig.tight_layout()
+        #ax.set_yscale('log')
+        #ax.set_xscale('log')
+        fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
+                    format="png",bbox_inches='tight')
+        
