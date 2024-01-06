@@ -23,7 +23,7 @@ from scipy.stats import gaussian_kde
 import scipy
 from shapely.geometry import Point
 # -------------------------------INPUTS----------------------------------------
-coarseDomain = 'MERRA'
+coarseDomain = 'MERRA_aerosol'
 refinedDomain = 'BRAIN' 
 
 NO2 = {
@@ -42,15 +42,15 @@ CO = {
 
 O3 = {
   "Pollutant": "$O_{3}$",
-  "Unit": '$\u03BCg.m^{-3}$',
-  "conv": 1960,
+  "Unit": 'ppm',
+  "conv": 1,
   "tag":'O3'
 }
 
 SO2 = {
   "Pollutant": "$SO_{2}$",
-  "Unit": '$\u03BCg.m^{-3}$',
-  "conv": 2620,
+  "Unit": '$kg.m^{-3}$',
+  "conv": 2620*10**-6,
   "tag":'SO2'
 }
 
@@ -68,7 +68,7 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[O3]
+pollutants=[SO2]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -109,6 +109,8 @@ for kk,pol in enumerate(pollutants):
         polMERRA = 'COSC'
     elif pol['tag']=='O3':
         polMERRA = 'TO3'
+    elif pol['tag']=='SO2':
+        polMERRA = 'SO2SMASS'
         
     dataMERRA = ds[polMERRA][:]
     timeMerra = ds['time'].time.data
