@@ -145,4 +145,4 @@ for pol in pollutants:
         times.append(time)
 
 import matplotlib.pyplot as plt        
-plt.pcolor(sentinelAllDf[10].reset_index()['LON'],sentinelAllDf[10].reset_index()['LAT'],sentinelAllDf[10].reset_index()['dataSentinel'])
+plt.scatter(sentinelAllDf[10].reset_index()['LON'],sentinelAllDf[10].reset_index()['LAT'],sentinelAllDf[10].reset_index()['dataSentinel'])
