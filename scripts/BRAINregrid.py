@@ -24,7 +24,7 @@ import scipy
 from shapely.geometry import Point
 import pandas as pd
 # -------------------------------INPUTS----------------------------------------
-coarseDomain = 'MERRA'
+coarseDomain = 'MERRA_aerosol'
 refinedDomain = 'BRAIN' 
 
 NO2 = {
@@ -69,7 +69,7 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[O3]
+pollutants=[PM25]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -117,12 +117,13 @@ for kk,pol in enumerate(pollutants):
         polMERRA = 'SO2SMASS'
         dataMERRA = ds[polMERRA][:]*(10**9)
     elif pol['tag'] == 'PM25':
-        dust25 = ds['DUSMASS25'][:]
-        ss25 = ds['SSSMASS25'][:]
-        bc = ds['BCSMASS'][:]
-        oc = ds['OCSMASS'][:]
-        so4 = ds['SO4SMASS'][:]
-        dataMERRA = (dust25+ ss25+ bc + 1.8*oc+ 1.375*so4)*(10**9)
+        # dust25 = ds['DUSMASS25'][:]
+        # ss25 = ds['SSSMASS25'][:]
+        # bc = ds['BCSMASS'][:]
+        # oc = ds['OCSMASS'][:]
+        # so4 = ds['SO4SMASS'][:]
+        dataMERRA = (ds['DUSMASS25'][:]+ ds['SSSMASS25'][:]+ ds['BCSMASS'][:] +\
+                     1.8*ds['OCSMASS'][:]+ 1.375*ds['SO4SMASS'][:])*(10**9)
 
     
     #dataMERRA = ds[polMERRA][:]
@@ -208,18 +209,18 @@ for kk,pol in enumerate(pollutants):
     
     if pol['tag']=='O3':
         heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,dataBRAIN[500,0,:,:]*pol['conv'],
-                               #vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                               #vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]),
-                               #norm=matplotlib.colors.LogNorm(
-                               #    vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])])*1.2,
-                               #    vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])*0.8),
-                               cmap='Spectral_r')
+                                #vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                                #vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]),
+                                #norm=matplotlib.colors.LogNorm(
+                                #    vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])])*1.2,
+                                #    vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])*0.8),
+                                cmap='Spectral_r')
         
     else:
         heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,dataBRAIN[500,0,:,:]*pol['conv'],
-                               vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                               vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]),
-                               cmap='Spectral_r')
+                                vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                                vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]),
+                                cmap='Spectral_r')
         
     ax[0].set_xlim([xb[0], xb[1]])
     ax[0].set_ylim([yb[0], yb[1]])
@@ -271,10 +272,10 @@ for kk,pol in enumerate(pollutants):
     
     if pol['tag']=='O3':
         heatmap = ax[2].pcolor(lonMERRA,latMERRA,dataMERRAfiltered[500,:,:],
-                               #norm=matplotlib.colors.LogNorm(
-                               #    vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                               #    vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
-                               cmap='Spectral_r')
+                                #norm=matplotlib.colors.LogNorm(
+                                #    vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
+                                #    vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
+                                cmap='Spectral_r')
         ax[2].set_xlim([xb[0], xb[1]])
         ax[2].set_ylim([yb[0], yb[1]])
         ax[2].set_xticks([])
@@ -285,7 +286,7 @@ for kk,pol in enumerate(pollutants):
                             #spacing='uniform',
                             orientation='horizontal',
                             norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                                                           vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
+                                                            vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
                             )
         #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
         cbar.ax.set_xlabel(pol['tag']+' (Dobsons)\n c) MERRA2', rotation=0,fontsize=6)
@@ -293,7 +294,7 @@ for kk,pol in enumerate(pollutants):
         cbar.ax.tick_params(labelsize=6)
     else:
         heatmap = ax[2].pcolor(lonMERRA,latMERRA,dataMERRAfiltered[500,:,:],                               
-                               cmap='Spectral_r')
+                                cmap='Spectral_r')
         ax[2].set_xlim([xb[0], xb[1]])
         ax[2].set_ylim([yb[0], yb[1]])
         ax[2].set_xticks([])
@@ -304,7 +305,7 @@ for kk,pol in enumerate(pollutants):
                             #spacing='uniform',
                             orientation='horizontal',
                             norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                                                           vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
+                                                            vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])])),
                             )
         #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
         cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n c) MERRA2', rotation=0,fontsize=6)
@@ -313,12 +314,12 @@ for kk,pol in enumerate(pollutants):
     
     if pol['tag']!='O3':
         heatmap = ax[3].pcolor(lonMERRA,latMERRA,
-                     np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0),
-                     vmin=-np.nanmax(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0))*0.9,
-                     vmax=np.nanmax(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0))*0.9,
-                     #vmin=np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA)),
-                     #vmax=abs(np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA))),
-                     cmap='RdBu_r')
+                      np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0),
+                      vmin=-np.nanmax(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0))*0.9,
+                      vmax=np.nanmax(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA,axis=0))*0.9,
+                      #vmin=np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA)),
+                      #vmax=abs(np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA))),
+                      cmap='RdBu_r')
         ax[3].set_xlim([xb[0], xb[1]])
         ax[3].set_ylim([yb[0], yb[1]])
         ax[3].set_xticks([])
@@ -361,19 +362,19 @@ for kk,pol in enumerate(pollutants):
           np.nanmax(yvMERRA[~np.isnan(dataBRAINinMERRA)[0,:,:]])]
     if pol['tag']!='O3':
         heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,np.nanmean(dataBRAIN[:,0,:,:],axis=0)*pol['conv'],
-                               vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                                               np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
-                               vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                                               np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
-                               #norm=matplotlib.colors.LogNorm(
-                               #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                               #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
-                               #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                               #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
-                               cmap='Spectral_r')
+                                vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                                np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                                vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                                np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
+                                #norm=matplotlib.colors.LogNorm(
+                                #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                                #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
+                                cmap='Spectral_r')
     else:
         heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,np.nanmean(dataBRAIN[:,0,:,:],axis=0)*pol['conv'],
-                               cmap='Spectral_r')
+                                cmap='Spectral_r')
     ax[0].set_xlim([xb[0], xb[1]])
     ax[0].set_ylim([yb[0], yb[1]])
     ax[0].set_xticks([])
@@ -424,16 +425,16 @@ for kk,pol in enumerate(pollutants):
     cbar.ax.tick_params(labelsize=6)
     if pol['tag']!='O3':
         heatmap = ax[2].pcolor(lonMERRA,latMERRA,np.nanmean(dataMERRAfiltered[:,:,:],axis=0),
-                               vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                                               np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
-                               vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                                               np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
-                               # norm=matplotlib.colors.LogNorm(
-                               #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                               #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
-                               #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
-                               #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
-                               cmap='Spectral_r')
+                                vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                                np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                                vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                                np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8,
+                                # norm=matplotlib.colors.LogNorm(
+                                #    vmin=np.nanmin([np.nanmin(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                #                    np.nanmin(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*1.2,
+                                #    vmax=np.nanmax([np.nanmax(np.nanmean(dataMERRAfiltered[:,:,:],axis=0)),
+                                #                    np.nanmax(np.nanmean(dataBRAINinMERRA[:,:,:],axis=0))])*0.8)
+                                cmap='Spectral_r')
         ax[2].set_xlim([xb[0], xb[1]])
         ax[2].set_ylim([yb[0], yb[1]])
         ax[2].set_xticks([])
@@ -444,7 +445,7 @@ for kk,pol in enumerate(pollutants):
                             #spacing='uniform',
                             orientation='horizontal',
                             norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                                                           vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
+                                                            vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
                             )
         #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
         cbar.ax.set_xlabel(pol['tag']+' ('+pol['Unit']+')\n c) MERRA2', rotation=0,fontsize=6)
@@ -452,7 +453,7 @@ for kk,pol in enumerate(pollutants):
         cbar.ax.tick_params(labelsize=6)
     else:
         heatmap = ax[2].pcolor(lonMERRA,latMERRA,np.nanmean(dataMERRAfiltered[:,:,:],axis=0),
-                       cmap='Spectral_r')
+                        cmap='Spectral_r')
         ax[2].set_xlim([xb[0], xb[1]])
         ax[2].set_ylim([yb[0], yb[1]])
         ax[2].set_xticks([])
@@ -463,7 +464,7 @@ for kk,pol in enumerate(pollutants):
                             #spacing='uniform',
                             orientation='horizontal',
                             norm=matplotlib.colors.LogNorm(vmin=np.nanmin([np.nanmin(dataMERRAfiltered[:,:,:]),np.nanmin(dataBRAINinMERRA[:,:,:])]),
-                                                           vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
+                                                            vmax=np.nanmax([np.nanmax(dataMERRAfiltered[:,:,:]),np.nanmax(dataBRAINinMERRA[:,:,:])]))
                             )
         #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
         cbar.ax.set_xlabel(pol['tag']+' (Dobsons)\n c) MERRA2', rotation=0,fontsize=6)
@@ -472,12 +473,12 @@ for kk,pol in enumerate(pollutants):
         
     if pol['tag']!='O3':
         heatmap = ax[3].pcolor(lonMERRA,latMERRA,
-                     np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0),
-                     vmin=-np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
-                     vmax=np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
-                     #vmin=np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA)),
-                     #vmax=abs(np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA))),
-                     cmap='RdBu_r')
+                      np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0),
+                      vmin=-np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
+                      vmax=np.nanmax(np.nanmean(dataMERRAfiltered,axis=0)-np.nanmean(dataBRAINinMERRA,axis=0))*0.9,
+                      #vmin=np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA)),
+                      #vmax=abs(np.nanmin(np.nanmean(dataMERRAfiltered-dataBRAINinMERRA))),
+                      cmap='RdBu_r')
         ax[3].set_xlim([xb[0], xb[1]])
         ax[3].set_ylim([yb[0], yb[1]])
         ax[3].set_xticks([])
@@ -556,7 +557,7 @@ for kk,pol in enumerate(pollutants):
         xy = xy[:,~np.any(np.isnan(xy), axis=0)]
         #z = gaussian_kde(xy)(xy)
         ax.scatter(xy[0,:],xy[1,:],
-                   s=1,alpha=.2,c=c)
+                    s=1,alpha=.2,c=c)
     
         ###calculate Spearman correlation using new_df
         corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
@@ -575,7 +576,7 @@ for kk,pol in enumerate(pollutants):
         
         if (pol['tag']=='CO') or (pol['tag']=='SO2') or (pol['tag']=='PM25'):
             ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
-                     [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+                      [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
             ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
                             np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
                             alpha=0.2,facecolor='gray',edgecolor=None)
@@ -616,7 +617,7 @@ for kk,pol in enumerate(pollutants):
     xy = xy[:,~np.any(np.isnan(xy), axis=0)]
     #z = gaussian_kde(xy)(xy)
     ax.scatter(xy[0,:],xy[1,:],
-               s=1,alpha=.2,c='Cyan')
+                s=1,alpha=.2,c='Cyan')
     sigla='Domain'
     ###calculate Spearman correlation using new_df
     corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
@@ -635,7 +636,7 @@ for kk,pol in enumerate(pollutants):
     
     if (pol['tag']=='CO') or (pol['tag']=='SO2') or (pol['tag']=='PM25'):
         ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
-                 [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+                  [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
         ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
                         np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
                         alpha=0.2,facecolor='gray',edgecolor=None)
@@ -701,7 +702,7 @@ for kk,pol in enumerate(pollutants):
         xy = xy[:,~np.any(np.isnan(xy), axis=0)]
         #z = gaussian_kde(xy)(xy)
         ax.scatter(xy[0,:],xy[1,:],
-                   s=1,alpha=.2,c=c)
+                    s=1,alpha=.2,c=c)
     
         ###calculate Spearman correlation using new_df
         corr, p_value = scipy.stats.spearmanr(xy[0,:],xy[1,:])
@@ -721,7 +722,7 @@ for kk,pol in enumerate(pollutants):
         
         if (pol['tag']=='CO') or (pol['tag']=='SO2') or (pol['tag']=='PM25'):
             ax.plot([np.nanmin([y,preds]), np.nanmax([y,preds])],
-                     [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
+                      [np.nanmin([y,preds]), np.nanmax([y,preds])], 'k-', lw=1,dashes=[2, 2])
             ax.fill_between(np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataMERRAfiltered.shape[0]), 
                             np.linspace(np.nanmin([y,preds]), np.nanmax([y,preds]),dataBRAINinMERRA.shape[0])*0.5,
                             alpha=0.2,facecolor='gray',edgecolor=None)
@@ -899,14 +900,16 @@ for kk,pol in enumerate(pollutants):
         cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
                             xlon,ylat,None,
                             os.path.dirname(BASE)+'/figures/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
-     
-    legend = 'MERRA2 ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
-    #legend ='BRAIN'
-    for IBGE_CODE in capitals.IBGE_CODE:
-        IBGE_CODE=str(IBGE_CODE)
-        s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
-        #IBGE_CODE=1100205 #    
-        cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE)
-        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-                            xlon,ylat,None,
-                            os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
+    
+    
+    # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","pink","deeppink","purple"])
+    # legend = 'MERRA2 ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+    # #legend ='BRAIN'
+    # for IBGE_CODE in capitals.IBGE_CODE:
+    #     IBGE_CODE=str(IBGE_CODE)
+    #     s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
+    #     #IBGE_CODE=1100205 #    
+    #     cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData2,datesTime,cityMat,s,IBGE_CODE)
+    #     cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+    #                         xlon,ylat,None,
+    #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
