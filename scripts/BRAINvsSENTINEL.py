@@ -84,7 +84,7 @@ BASE = os.getcwd()
 dataFolder = os.path.dirname(BASE)+'/data'
 coarseDomainPath =  dataFolder+'/' + coarseDomain
 refinedDomain =  dataFolder+'/' + refinedDomain
-
+year = 2019
 
 print('Looping for each variable')
 for kk,pol in enumerate(pollutants):
@@ -94,7 +94,7 @@ for kk,pol in enumerate(pollutants):
     print(pol)
     print('Openning netCDF files')
     # Opening netCDF files
-    fileType='BRAIN_BASECONC_BR_'+pol['tag']
+    fileType='BRAIN_BASECONC_BR_'+pol['tag']+'_'+str(year)
     prefixed = sorted([filename for filename in os.listdir(refinedDomain) if filename.startswith(fileType)])
     ds = nc.MFDataset(prefixed)
     # Selecting variable
@@ -107,11 +107,21 @@ for kk,pol in enumerate(pollutants):
     lonBRAINflat = lonBRAIN.flatten()
     os.chdir(os.path.dirname(BASE))
     # ========coarse domain files============
-    os.chdir(coarseDomainPath)
+    os.chdir(coarseDomainPath+'/'+pol['tag'])
     print('Openning netCDF files')
     # Opening netCDF files
     fileType='S5P_OFFL_L2__'+pol['tag']
-    prefixed = sorted([filename for filename in os.listdir(coarseDomainPath) if filename.startswith(fileType)])
+    prefixed = sorted([filename for filename in os.listdir(coarseDomainPath+'/'+pol['tag']) if filename.startswith(fileType)])
+    ds = nc.Dataset(prefixed[0])
+    print (ds.groups['PRODUCT'].variables.keys())
+    print (ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'])
+    lons = ds.groups['PRODUCT'].variables['longitude'][:][0,:,:]
+    lats = ds.groups['PRODUCT'].variables['latitude'][:][0,:,:]
+    dataSentinel = ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'][0,:,:]  
+    # plt.figure()
+    # plt.pcolor(lons, lats, dataSentinel, cmap='hot')
+    # plt.show()
+    
     ds = xr.open_mfdataset(prefixed)
     os.chdir(os.path.dirname(BASE))
     # Selecting variable
