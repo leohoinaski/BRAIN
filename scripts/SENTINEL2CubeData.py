@@ -141,7 +141,7 @@ def dailyAverage (datesTime,data):
     return dailyData,daily
 
 # #%%
-pollutants = [NO2]
+pollutants = [CO]
 tinit = datetime.datetime(2010, 1, 1, 0, 0)
 time0 = datetime.datetime(1, 1, 1, 0, 0)
 
@@ -317,7 +317,7 @@ def brainPcolor(BASE,pol,lonBRAIN,latBRAIN,dataBRAIN,
                         #                                vmax=np.nanpercentile(dataMERRA,95)),
                         )
     #cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
-    cbar.ax.set_xlabel(pol['tag']+' tropospheric column ($mol.m^{-2}$) \n b) Regrided SENTINEL/TROPOMI', rotation=0,fontsize=6)
+    cbar.ax.set_xlabel(pol['tag']+' tropospheric column ($10^{-4} mol.m^{-2}$) \n b) Regrided SENTINEL/TROPOMI', rotation=0,fontsize=6)
     cbar.ax.get_xaxis().labelpad = 2
     cbar.ax.tick_params(labelsize=6)
  
@@ -485,6 +485,10 @@ shape_path= '/media/leohoinaski/HDD/shapefiles/BR_regions.shp'
 bordAtrib='NM_MUN'
 BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,(10**4)*matAve2,dailyData[:,0,:,:],bordAtrib)
 
+shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
+bordAtrib='NM_PAIS'
+BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,(10**4)*matAve2,dailyData[:,0,:,:],bordAtrib)
+
 #%%
 def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
     #IBGE_CODE=4202404
@@ -623,7 +627,7 @@ xlon,ylat =lonBRAIN,latBRAIN
 #cmap = 'YlOrRd'
 cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","cornsilk","yellow","darkred"])
 
-legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +'tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
+legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
 #legend ='BRAIN'
 for IBGE_CODE in capitals.IBGE_CODE:
     IBGE_CODE=str(IBGE_CODE)
