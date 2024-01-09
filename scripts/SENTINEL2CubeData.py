@@ -141,7 +141,7 @@ def dailyAverage (datesTime,data):
     return dailyData,daily
 
 # #%%
-pollutants = [CO]
+pollutants = [NO2]
 tinit = datetime.datetime(2010, 1, 1, 0, 0)
 time0 = datetime.datetime(1, 1, 1, 0, 0)
 
@@ -581,18 +581,18 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         ax[0].set_yticks([])
         cityArea.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax[0])
         cities.boundary.plot(edgecolor='gray',linewidth=0.3,ax=ax[0])
-
-        ax[1].fill_between(cityDataFrame.mean(axis=1).index,cityDataFrame.max(axis=1), cityDataFrame.min(axis=1),
+        xdata = [datetime.datetime.strptime(x, '%Y-%m-%d 00:00:00') for x in cityDataFrame.mean(axis=1).dropna().index]
+        ax[1].fill_between(xdata,cityDataFrame.max(axis=1).dropna(), cityDataFrame.min(axis=1).dropna(),
                          color=cmap(0.8),       # The outline color
                          facecolor=cmap(0.8),
                          edgecolor=None,
                          alpha=0.2,label='Min-Max')          # Transparency of the fill
-        ax[1].plot(cityDataFrame.mean(axis=1).index,cityDataFrame.mean(axis=1),
+        ax[1].plot(xdata,cityDataFrame.mean(axis=1).dropna(),
                    color=cmap(0.8),linewidth=1,label='Average')
         ax[1].xaxis.set_tick_params(labelsize=6)
         ax[1].yaxis.set_tick_params(labelsize=6)
         ax[1].set_ylim([np.nanmin(matData)*0.95,np.nanmax(matData)*1.05])
-        ax[1].set_xlim([cityDataFrame.index.min(),cityDataFrame.index.max()])
+        ax[1].set_xlim([np.min(xdata),np.max(xdata)])
         ax[1].xaxis.set_major_locator(mdates.MonthLocator(interval=1))
         # set formatter
         if criteria!=None:
@@ -623,7 +623,7 @@ xlon,ylat =lonBRAIN,latBRAIN
 #cmap = 'YlOrRd'
 cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","cornsilk","yellow","darkred"])
 
-legend = 'SENTINEL tropospheric column  ' +pol['Pollutant'] +'($10^{-4}  mol.m^{-2}$)'
+legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +'tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
 #legend ='BRAIN'
 for IBGE_CODE in capitals.IBGE_CODE:
     IBGE_CODE=str(IBGE_CODE)
