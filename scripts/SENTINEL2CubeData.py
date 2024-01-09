@@ -10,7 +10,7 @@ import netCDF4 as nc
 import BRAINutils
 import datetime
 import pandas as pd
-
+import numpy as np
 
 coarseDomain = 'SENTINEL'
 refinedDomain = 'BRAIN'
@@ -58,6 +58,29 @@ PM25 = {
     "tag": 'PM25',
 }
 
+def dailyAverage (datesTime,data):
+    if len(data.shape)>3:
+        daily = datesTime.groupby(['year','month','day']).count()
+        dailyData = np.empty((daily.shape[0],data.shape[1],data.shape[2],data.shape[3]))
+        for day in range(0,daily.shape[0]):
+            findArr = (datesTime['year'] == daily.index[day][0]) & \
+                (datesTime['month'] == daily.index[day][1]) & \
+                    (datesTime['day'] == daily.index[day][2]) 
+            dailyData[day,:,:,:] = data[findArr,:,:,:].mean(axis=0)   
+    else:
+        daily = datesTime.groupby(['year','month','day']).count()
+        dailyData = np.empty((daily.shape[0],data.shape[1],data.shape[2]))
+        for day in range(0,daily.shape[0]):
+            findArr = (datesTime['year'] == daily.index[day][0]) & \
+                (datesTime['month'] == daily.index[day][1]) & \
+                    (datesTime['day'] == daily.index[day][2]) 
+            dailyData[day,:,:] = data[findArr,:,:].mean(axis=0)   
+    daily=daily.reset_index()
+    
+    daily['datetime'] = pd.to_datetime(dict(year=daily['year'], month=daily['month'], day=daily['day']))
+    
+    return dailyData,daily
+
 pollutants = [NO2]
 tinit = datetime.datetime(2010, 1, 1, 0, 0)
 time0 = datetime.datetime(1, 1, 1, 0, 0)
@@ -87,7 +110,13 @@ for pol in pollutants:
     lonBRAIN = ds['LON'][:]
     latBRAINflat = latBRAIN.flatten()
     lonBRAINflat = lonBRAIN.flatten()
-
+    
+    dailyData,daily=dailyAverage(datesTimeBRAIN,dataBRAIN)
+    
+    matAve=np.empty((dailyData.shape[0],latBRAIN.shape[0],latBRAIN.shape[1]))
+    matAve[:,:,:] = np.nan
+    
+    
     os.chdir(coarseDomainPath+'/'+pol['tag'])
     print('Openning netCDF files')
     # Opening netCDF files
@@ -100,49 +129,69 @@ for pol in pollutants:
     ii = 0
     for pr in prefixed:
         ds = nc.Dataset(pr)
+        
         try:
-            # print (ds.groups['PRODUCT'].variables.keys())
-            # print (ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'])
-            lons = ds.groups['PRODUCT'].variables['longitude'][:][0,
-                                                                  :, :].data.flatten()
-            lats = ds.groups['PRODUCT'].variables['latitude'][:][0,
-                                                                 :, :].data.flatten()
             time = ds.groups['PRODUCT'].variables['time'][:]
             time = datetime.datetime.fromtimestamp(
                 tinit.timestamp()+time[0]).strftime('%Y-%m-%d %H:00:00')
-            dataSentinel = ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'][0, :, :].data.flatten(
-            )
-
-            if time0 == time:
-                if ii == 0:
-                    dfSentinel = pd.DataFrame()
-                else:
-                    ii = ii+1
-                print('Same timestamp')
-                dfSentinelNew = pd.DataFrame()
-                dfSentinelNew['LON'] = lons
-                dfSentinelNew['LAT'] = lats
-                dfSentinelNew['dataSentinel'] = dataSentinel
-                dfSentinel = pd.concat(
-                    [dfSentinel, dfSentinelNew], ignore_index=True)
-
-            else:
+            print(pr)
+            print(time)
+            
+            if (datesTimeBRAIN.datetime ==time).sum()==1:
+                dataInBRAIN = np.zeros(lonBRAINflat.shape[0])
+                #dataInBRAIN[:] = np.nan
+                # print (ds.groups['PRODUCT'].variables.keys())
+                # print (ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'])
+                lonsOriginal = ds.groups['PRODUCT'].variables['longitude'][:][0,:, :].data.flatten()
+                lonsOriginal[(lonsOriginal>180) | (lonsOriginal<-180)]=np.nan
+                lons = lonsOriginal[~np.isnan(lonsOriginal)].copy()
+                latsOriginal = ds.groups['PRODUCT'].variables['latitude'][:][0,:, :].data.flatten()
+                latsOriginal[(latsOriginal>90) | (latsOriginal<-90)]=np.nan
+                lats = latsOriginal[~np.isnan(latsOriginal)].copy()
+    
+                dataSentinelOriginal = ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'][0, :,:].data.flatten()
+                dataSentinel = dataSentinelOriginal[~np.isnan(lonsOriginal)]
+                lats = lats[dataSentinel!=9.96921e+36]
+                lons = lons[dataSentinel!=9.96921e+36]
+                dataSentinel = dataSentinel[dataSentinel!=9.96921e+36]
+                dfSentinel = pd.DataFrame()
                 dfSentinel['LON'] = lons
                 dfSentinel['LAT'] = lats
                 dfSentinel['dataSentinel'] = dataSentinel
-                ii = 0
-                # dfSentinel = pd.DataFrame()
+                dfSentinel['pixInBRAIN'] = np.nan
+                sentinelAllDf.append(
+                    dfSentinel.dropna().groupby(by=['LON', 'LAT']).mean().reset_index())
+                print('-----FILE OK!!-----')
+                #print(time)
+                times.append(time)
+                pixSentinelInBRAIN=[]
+                
+                for ii,ll in enumerate(latBRAINflat):
+                    #print(str(ii) + ' of '+ str(latBRAINflat.shape[0]))
+                    if (latBRAINflat[ii]>np.max(lats)) and (latBRAINflat[ii]<np.max(lats)) and \
+                        (lonBRAINflat[ii]>np.max(lons)) and (lonBRAINflat[ii]<np.max(lons)):
+                        print('Pixel outside domain') 
+                    else:
+                        dist = np.sqrt((latBRAINflat[ii]-lats)**2+(lonBRAINflat[ii]-lons)**2)
+                        dataInBRAIN[ii] = np.nanmean([dataInBRAIN[ii],dataSentinel[np.argmin(abs(dist))]])
 
-            sentinelAllDf.append(
-                dfSentinel.dropna().groupby(by=['LON', 'LAT']).mean())
-            print('-----FILE OK!!-----')
-            print(time)
+                        
+                matAve[datesTimeBRAIN.datetime ==time,:,:] = \
+                    np.nanmean([matAve[datesTimeBRAIN.datetime ==time,:,:], 
+                               dataInBRAIN.reshape(1,matAve.shape[1],matAve.shape[2])],axis=0)
+            
+            
         except:
             print(pr)
             print('file without data')
-            dfSentinel = pd.DataFrame()
-        time0 = time
-        times.append(time)
+
+
 
 import matplotlib.pyplot as plt        
-plt.scatter(sentinelAllDf[10].reset_index()['LON'],sentinelAllDf[10].reset_index()['LAT'],sentinelAllDf[10].reset_index()['dataSentinel'])
+import geopandas as gpd
+fig,ax = plt.subplots()
+ax.pcolor(lonBRAIN,latBRAIN,matAve[24,:,:])
+np.nansum(matAve[24,:,:])
+shapeBorder = '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+borda = gpd.read_file(shapeBorder)
+borda.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
