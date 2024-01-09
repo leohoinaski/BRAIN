@@ -128,28 +128,28 @@ for pol in pollutants:
     times = []
     ii = 0
     for pr in prefixed:
-        ds = nc.Dataset(pr)
+        ds2 = nc.Dataset(pr)
         
         try:
-            time = ds.groups['PRODUCT'].variables['time'][:]
+            time = ds2.groups['PRODUCT'].variables['time'][:]
             time = datetime.datetime.fromtimestamp(
                 tinit.timestamp()+time[0]).strftime('%Y-%m-%d %H:00:00')
             print(pr)
             print(time)
             
             if (datesTimeBRAIN.datetime ==time).sum()==1:
-                dataInBRAIN = np.zeros(lonBRAINflat.shape[0])
-                #dataInBRAIN[:] = np.nan
-                # print (ds.groups['PRODUCT'].variables.keys())
-                # print (ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'])
-                lonsOriginal = ds.groups['PRODUCT'].variables['longitude'][:][0,:, :].data.flatten()
+                dataInBRAIN = np.empty(lonBRAINflat.shape[0])
+                dataInBRAIN[:] = np.nan
+                # print (ds2.groups['PRODUCT'].variables.keys())
+                # print (ds2.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'])
+                lonsOriginal = ds2.groups['PRODUCT'].variables['longitude'][:][0,:, :].data.flatten()
                 lonsOriginal[(lonsOriginal>180) | (lonsOriginal<-180)]=np.nan
                 lons = lonsOriginal[~np.isnan(lonsOriginal)].copy()
-                latsOriginal = ds.groups['PRODUCT'].variables['latitude'][:][0,:, :].data.flatten()
+                latsOriginal = ds2.groups['PRODUCT'].variables['latitude'][:][0,:, :].data.flatten()
                 latsOriginal[(latsOriginal>90) | (latsOriginal<-90)]=np.nan
                 lats = latsOriginal[~np.isnan(latsOriginal)].copy()
     
-                dataSentinelOriginal = ds.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'][0, :,:].data.flatten()
+                dataSentinelOriginal = ds2.groups['PRODUCT'].variables['nitrogendioxide_tropospheric_column'][0, :,:].data.flatten()
                 dataSentinel = dataSentinelOriginal[~np.isnan(lonsOriginal)]
                 lats = lats[dataSentinel!=9.96921e+36]
                 lons = lons[dataSentinel!=9.96921e+36]
@@ -176,22 +176,26 @@ for pol in pollutants:
                         dataInBRAIN[ii] = np.nanmean([dataInBRAIN[ii],dataSentinel[np.argmin(abs(dist))]])
 
                         
-                matAve[datesTimeBRAIN.datetime ==time,:,:] = \
-                    np.nanmean([matAve[datesTimeBRAIN.datetime ==time,:,:], 
+                matAve[daily.datetime ==time,:,:] = \
+                    np.nanmean([matAve[daily.datetime ==time,:,:], 
                                dataInBRAIN.reshape(1,matAve.shape[1],matAve.shape[2])],axis=0)
             
             
         except:
             print(pr)
             print('file without data')
+    
+    name = 'SENTINEL_'+pol['tag']+'_'+str(datesTimeBRAIN.datetime[0])+'_'+str(datesTimeBRAIN.datetime[-1])
+    BRAINutils.createNETCDFtemporalClipper(coarseDomainPath,name,matAve,ds,pol['tag'],lonBRAIN,latBRAIN,datesTimeBRAIN)
 
 
 
-import matplotlib.pyplot as plt        
-import geopandas as gpd
-fig,ax = plt.subplots()
-ax.pcolor(lonBRAIN,latBRAIN,matAve[24,:,:])
-np.nansum(matAve[24,:,:])
-shapeBorder = '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
-borda = gpd.read_file(shapeBorder)
-borda.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
+
+# import matplotlib.pyplot as plt        
+# import geopandas as gpd
+# fig,ax = plt.subplots()
+# ax.pcolor(lonBRAIN,latBRAIN,matAve[24,:,:])
+# np.nansum(matAve[:,:,:])
+# shapeBorder = '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+# borda = gpd.read_file(shapeBorder)
+# borda.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
