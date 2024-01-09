@@ -77,8 +77,12 @@ def dailyAverage (datesTime,data):
             dailyData[day,:,:] = data[findArr,:,:].mean(axis=0)   
     daily=daily.reset_index()
     
-    daily['datetime'] = pd.to_datetime(dict(year=daily['year'], month=daily['month'], day=daily['day']))
-    
+    daily['datetime'] = pd.to_datetime(dict(year=daily['year'], 
+                                            month=daily['month'], 
+                                            day=daily['day'],
+                                            hour=0),
+                                       format='%Y-%m-%d %H:00:00').dt.strftime('%Y-%m-%d %H:00:00')
+
     return dailyData,daily
 
 pollutants = [NO2]
@@ -133,7 +137,7 @@ for pol in pollutants:
         try:
             time = ds2.groups['PRODUCT'].variables['time'][:]
             time = datetime.datetime.fromtimestamp(
-                tinit.timestamp()+time[0]).strftime('%Y-%m-%d %H:00:00')
+                tinit.timestamp()+time[0]).strftime('%Y-%m-%d 00:00:00')
             print(pr)
             print(time)
             
