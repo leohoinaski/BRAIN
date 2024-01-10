@@ -24,7 +24,7 @@ import scipy
 from shapely.geometry import Point
 import pandas as pd
 # -------------------------------INPUTS----------------------------------------
-coarseDomain = 'MERRA_aerosol'
+coarseDomain = 'MERRA'
 refinedDomain = 'BRAIN' 
 
 NO2 = {
@@ -69,7 +69,7 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[PM25]
+pollutants=[CO]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -343,7 +343,7 @@ for kk,pol in enumerate(pollutants):
     
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_'+pol['tag']+'.png', 
-                format="png",bbox_inches='tight')
+                format="png",bbox_inches='tight',dpi=300)
     
     
     #%%
@@ -502,7 +502,7 @@ for kk,pol in enumerate(pollutants):
     
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_average_'+pol['tag']+'.png', 
-                format="png",bbox_inches='tight')
+                format="png",bbox_inches='tight',dpi=300)
     
     
     #%%
@@ -605,7 +605,7 @@ for kk,pol in enumerate(pollutants):
         #ax.set_yscale('log')
         #ax.set_xscale('log')
         fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
-                    format="png",bbox_inches='tight')
+                    format="png",bbox_inches='tight',dpi=300)
         
         
     
@@ -661,7 +661,7 @@ for kk,pol in enumerate(pollutants):
         
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
-                format="png",bbox_inches='tight')
+                format="png",bbox_inches='tight',dpi=300)
     #ax.set_yscale('log')
     #ax.set_xscale('log')
     
@@ -750,7 +750,7 @@ for kk,pol in enumerate(pollutants):
         #ax.set_yscale('log')
         #ax.set_xscale('log')
         fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsMERRA_scatter_'+sigla+'_'+pol['tag']+'.png', 
-                    format="png",bbox_inches='tight')
+                    format="png",bbox_inches='tight',dpi=300)
 #%%  city figures 
 
     def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
@@ -872,7 +872,7 @@ for kk,pol in enumerate(pollutants):
             ax[1].set_ylabel(cityArea['NM_MUN'].to_string(index=False)+'\n'+legend,fontsize=6)
             fig.tight_layout()
             fig.savefig(folder+'/cityTimeSeries_'+pol+'_'+aveTime+'.png', format="png",
-                       bbox_inches='tight')
+                       bbox_inches='tight',dpi=300)
             return matData.shape
 
 

@@ -141,7 +141,7 @@ def dailyAverage (datesTime,data):
     return dailyData,daily
 
 # #%%
-pollutants = [CO]
+pollutants = [NO2]
 tinit = datetime.datetime(2010, 1, 1, 0, 0)
 time0 = datetime.datetime(1, 1, 1, 0, 0)
 
@@ -327,7 +327,7 @@ def brainPcolor(BASE,pol,lonBRAIN,latBRAIN,dataBRAIN,
     
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsSENTINEL_average_'+pol['tag']+'.png', 
-                format="png",bbox_inches='tight')
+                format="png",bbox_inches='tight',dpi=300)
 
 
 matAve2 = matAve[:,0,:,:].copy()
@@ -429,12 +429,12 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,
         ax.yaxis.set_tick_params(labelsize=8)
             
         ax.set_yscale('log')
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
         fig.tight_layout()
         #ax.set_yscale('log')
         #ax.set_xscale('log')
         fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsSENTINEL_scatter_'+sigla+'_'+pol['tag']+'.png', 
-                    format="png",bbox_inches='tight')
+                    format="png",bbox_inches='tight',dpi=300)
         
         
     
@@ -471,10 +471,10 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,
     ax.xaxis.set_tick_params(labelsize=7)
     ax.yaxis.set_tick_params(labelsize=8)
     ax.set_yscale('log')
-    #ax.set_xscale('log')
+    ax.set_xscale('log')
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsSENTINEL_scatter_'+sigla+'_'+pol['tag']+'.png', 
-                format="png",bbox_inches='tight')
+                format="png",bbox_inches='tight',dpi=300)
     #ax.set_yscale('log')
     #ax.set_xscale('log')
     
@@ -609,7 +609,7 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         ax[1].set_ylabel(cityArea['NM_MUN'].to_string(index=False)+'\n'+legend,fontsize=6)
         fig.tight_layout()
         fig.savefig(folder+'/cityTimeSeries_'+pol+'_'+aveTime+'.png', format="png",
-                   bbox_inches='tight')
+                   bbox_inches='tight',dpi=300)
         return matData.shape
 
 
