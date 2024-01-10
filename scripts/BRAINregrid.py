@@ -888,28 +888,28 @@ for kk,pol in enumerate(pollutants):
     xlon,ylat =xvMERRA,yvMERRA 
     
     #cmap = 'YlOrRd'
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
+    # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
 
-    legend = 'BRAIN ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
-    #legend ='BRAIN'
-    for IBGE_CODE in capitals.IBGE_CODE:
-        IBGE_CODE=str(IBGE_CODE)
-        s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
-        #IBGE_CODE=1100205 #    
-        cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE)
-        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-                            xlon,ylat,None,
-                            os.path.dirname(BASE)+'/figures/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
-    
-    
-    # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","pink","deeppink","purple"])
-    # legend = 'MERRA2 ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+    # legend = 'BRAIN ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
     # #legend ='BRAIN'
     # for IBGE_CODE in capitals.IBGE_CODE:
     #     IBGE_CODE=str(IBGE_CODE)
     #     s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
     #     #IBGE_CODE=1100205 #    
-    #     cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData2,datesTime,cityMat,s,IBGE_CODE)
+    #     cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE)
     #     cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
     #                         xlon,ylat,None,
-    #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
+    #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
+    
+    
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","pink","deeppink","purple"])
+    legend = 'MERRA2 ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+    #legend ='BRAIN'
+    for IBGE_CODE in capitals.IBGE_CODE:
+        IBGE_CODE=str(IBGE_CODE)
+        s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
+        #IBGE_CODE=1100205 #    
+        cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData2,datesTime,cityMat,s,IBGE_CODE)
+        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+                            xlon,ylat,None,
+                            os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
