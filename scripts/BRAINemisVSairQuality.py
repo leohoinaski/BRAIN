@@ -117,7 +117,7 @@ for kk,pol in enumerate(pollutants):
             dataEMIS = dataEMIS+ds[polEmis][0:8759,:,:,:]
             
     os.chdir(os.path.dirname(BASE))
-    datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAIN(ds,dataEMIS)
+    datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds,dataEMIS[0:8759,:,:,:])
     
     # ========BRAIN files============
     os.chdir(airQualityFolder)
@@ -145,8 +145,10 @@ ax.scatter(dataBRAIN[24:1000,:,:,:].flatten()*pol['conv'],
 if pol['Criteria']!=None:
     ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=1,
                   label='Air quality standard')
-    ax.axvline(x=np.nanmean(dataEMIS[24:1000,:,:,:].flatten()[dataBRAIN[24:1000,:,:,:].flatten()*pol['conv']>pol['Criteria']]), 
+    ax.axvline(x=np.min(dataEMIS[24:1000,:,:,:].flatten()[dataBRAIN[24:1000,:,:,:].flatten()*pol['conv']>pol['Criteria']]), 
                color='gray', linestyle='--',linewidth=1,
                    label='Lowest significant emission')
 ax.set_yscale('log')
 ax.set_xscale('log')
+ax.set_ylabel('Air quality\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=8)
+ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
