@@ -123,6 +123,7 @@ for kk,pol in enumerate(pollutants):
     os.chdir(emissFolder)
     print('Openning netCDF files')
     # Opening netCDF files
+    
     for emisType in emisTypes:
         fileType='BRAIN_BASEMIS_'+domain+'_2019_'+emisType+'_'+polEmis+'_'+str(year)
         prefixed = sorted([filename for filename in os.listdir(emissFolder) if filename.startswith(fileType)])
@@ -130,6 +131,9 @@ for kk,pol in enumerate(pollutants):
         dataEMIS = ds[polEmis][:]
         os.chdir(os.path.dirname(BASE))
         datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAIN(ds,dataEMIS)
-
+        
+    
+fig, ax = plt.subplots()
+ax.scatter(dataBRAIN[100:1000,:,:,:].flatten(),dataEMIS[100:1000,:,:,:].flatten())
 
 
