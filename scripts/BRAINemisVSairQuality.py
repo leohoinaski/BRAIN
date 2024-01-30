@@ -35,6 +35,7 @@ NO2 = {
   "Unit": '$\u03BCg.m^{-3}$',
   "conv": 1880,
   "tag":'NO2',
+  "Criteria": 200,
 }
 
 CO = {
@@ -134,6 +135,12 @@ for kk,pol in enumerate(pollutants):
         
     
 fig, ax = plt.subplots()
-ax.scatter(dataBRAIN[100:1000,:,:,:].flatten(),dataEMIS[100:1000,:,:,:].flatten())
-
+ax.scatter(dataBRAIN[24:1000,:,:,:].flatten()*pol['conv'],
+           dataEMIS[24:1000,:,:,:].flatten(),
+           s=1,alpha=.2,c='red')
+if pol['Criteria']!=None:
+    ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=0.5,
+                  label='Air quality standard')
+    ax.axvline(x=np.nanmean(dataEMIS[24:1000,:,:,:].flatten()[dataBRAIN[24:1000,:,:,:].flatten()*pol['conv']>pol['Criteria']]), color='gray', linestyle='--',linewidth=0.5,
+                   label='Lowest significant emission')
 
