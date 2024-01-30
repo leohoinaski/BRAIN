@@ -75,7 +75,7 @@ PM25 = {
 
 pollutants=[NO2]
 
-emisTypes = ['BRAVES']
+emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -87,24 +87,6 @@ year = '2020'
 
 print('Looping for each variable')
 for kk,pol in enumerate(pollutants):
-    
-    # ========BRAIN files============
-    os.chdir(airQualityFolder)
-    print(pol)
-    print('Openning netCDF files')
-    # Opening netCDF files
-    fileType='BRAIN_BASECONC_'+domain+'_'+pol['tag']+'_'+str(year)
-    prefixed = sorted([filename for filename in os.listdir(airQualityFolder) if filename.startswith(fileType)])
-    ds = nc.Dataset(prefixed[0])
-    # Selecting variable
-    dataBRAIN = ds[pol['tag']][:]
-    # Get datesTime and removing duplicates
-    datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
-    latBRAIN = ds['LAT'][:]
-    lonBRAIN = ds['LON'][:]
-    latBRAINflat = latBRAIN.flatten()
-    lonBRAINflat = lonBRAIN.flatten()
-    os.chdir(os.path.dirname(BASE))
     
     # ======== EMIS files============
     # Selecting variable
@@ -125,22 +107,46 @@ for kk,pol in enumerate(pollutants):
     print('Openning netCDF files')
     # Opening netCDF files
     
-    for emisType in emisTypes:
+    for ii, emisType in enumerate(emisTypes):
         fileType='BRAIN_BASEMIS_'+domain+'_2019_'+emisType+'_'+polEmis+'_'+str(year)
         prefixed = sorted([filename for filename in os.listdir(emissFolder) if filename.startswith(fileType)])
         ds = nc.Dataset(prefixed[0])
-        dataEMIS = ds[polEmis][:]
-        os.chdir(os.path.dirname(BASE))
-        datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAIN(ds,dataEMIS)
-        
+        if ii==0:
+            dataEMIS = ds[polEmis][0:8759,:,:,:]
+        else:
+            dataEMIS = dataEMIS+ds[polEmis][0:8759,:,:,:]
+            
+    os.chdir(os.path.dirname(BASE))
+    datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAIN(ds,dataEMIS)
+    
+    # ========BRAIN files============
+    os.chdir(airQualityFolder)
+    print(pol)
+    print('Openning netCDF files')
+    # Opening netCDF files
+    fileType='BRAIN_BASECONC_'+domain+'_'+pol['tag']+'_'+str(year)
+    prefixed = sorted([filename for filename in os.listdir(airQualityFolder) if filename.startswith(fileType)])
+    ds = nc.Dataset(prefixed[0])
+    # Selecting variable
+    dataBRAIN = ds[pol['tag']][:]
+    # Get datesTime and removing duplicates
+    datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
+    latBRAIN = ds['LAT'][:]
+    lonBRAIN = ds['LON'][:]
+    latBRAINflat = latBRAIN.flatten()
+    lonBRAINflat = lonBRAIN.flatten()
+    os.chdir(os.path.dirname(BASE))
+    
     
 fig, ax = plt.subplots()
 ax.scatter(dataBRAIN[24:1000,:,:,:].flatten()*pol['conv'],
            dataEMIS[24:1000,:,:,:].flatten(),
            s=1,alpha=.2,c='red')
 if pol['Criteria']!=None:
-    ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=0.5,
+    ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=1,
                   label='Air quality standard')
-    ax.axvline(x=np.nanmean(dataEMIS[24:1000,:,:,:].flatten()[dataBRAIN[24:1000,:,:,:].flatten()*pol['conv']>pol['Criteria']]), color='gray', linestyle='--',linewidth=0.5,
+    ax.axvline(x=np.nanmean(dataEMIS[24:1000,:,:,:].flatten()[dataBRAIN[24:1000,:,:,:].flatten()*pol['conv']>pol['Criteria']]), 
+               color='gray', linestyle='--',linewidth=1,
                    label='Lowest significant emission')
-
+ax.set_yscale('log')
+ax.set_xscale('log')
