@@ -9,7 +9,7 @@ Created on Fri Jan  5 13:48:15 2024
 import numpy as np
 from datetime import datetime
 import pandas as pd
-#import netCDF4 as nc
+import netCDF4 as nc
 #from numpy.lib.stride_tricks import sliding_window_view
 #import pyproj
 #from shapely.geometry import Point
