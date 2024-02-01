@@ -74,7 +74,7 @@ PM25 = {
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-
+pollutants=[NO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 #------------------------------PROCESSING--------------------------------------
@@ -195,7 +195,7 @@ for kk,pol in enumerate(pollutants):
     ax[1].set_xticks([])
     #ax[1].set_ylabel('Air quality \n'+pol['tag']+ ' ('+pol['Unit']+')' ,fontsize=8)
     ax[1].yaxis.set_tick_params(labelsize=7)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesSelection_'+pol+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesSelection_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
     # Detectando os eventos acima do percentil
@@ -217,7 +217,7 @@ for kk,pol in enumerate(pollutants):
     ax.set_yscale('symlog')
     ax.set_ylabel('Emission\n'+pol['tag'] ,fontsize=8)
     ax.set_xlabel(None ,fontsize=8)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/boxplotViolateEmissions_'+pol+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/boxplotViolateEmissions_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
     #%% Encontrando dados em cada quadrante
@@ -230,41 +230,16 @@ for kk,pol in enumerate(pollutants):
     
     q1EMISmat = dataEMIS[boolEvents,:,:,:]
     q1EMISmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']<pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]<minMeanEmis)]=np.nan
-    freQ1 = np.nansum(np.isnan(q1EMISmat).reshape(q1EMISmat.shape),axis=0)
+    #freQ1 = np.nansum(np.isnan(q1EMISmat).reshape(q1EMISmat.shape),axis=0)
     freQ1 = np.isnan(q1EMISmat).reshape(q1EMISmat.shape).all(axis=0)
-    freQ1[:,cityMat==0] = False
-    
-    
-    # Figure frequencia no Q1
-    # fig,ax = plt.subplots()
-    # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['#46CCF1','#92DAD9',"white"])
-    # heatmap = ax.pcolor(lonBRAIN,latBRAIN,freQ1[0,:,:],cmap=cmap)
-    # cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,
-    #                     #ticks=bounds,
-    #                     #extend='both',
-    #                     spacing='uniform',
-    #                     orientation='horizontal',
-    #                     #norm=norm,
-    #                     ax=ax)
-    # cbar.ax.tick_params(rotation=30)
-    # ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
-    # ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
-    # ax.set_xticks([])
-    # ax.set_yticks([])
-    # shape_path= '/mnt/sdb1/shapefiles/BR_regions.shp'
-    # #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
-    # #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
-    # dataShp = gpd.read_file(shape_path)
-    # dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
-    
-    
+    freQ1[:,cityMat==0] = False   
     
     # Q2 - BAIXA EMISSÃO E MÁ QUALIDADE DO AR
     q2BRAIN = (dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv'])[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()<minMeanEmis)]
     q2EMIS = dataEMIS[boolEvents,:,:,:].flatten()[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()<minMeanEmis)]
     q2EMISmat = dataEMIS[boolEvents,:,:,:]
     q2EMISmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]<minMeanEmis)]=np.nan
-    freQ2 = np.nansum(np.isnan(q2EMISmat).reshape(q2EMISmat.shape),axis=0)
+    #freQ2 = np.nansum(np.isnan(q2EMISmat).reshape(q2EMISmat.shape),axis=0)
     freQ2 = np.isnan(q2EMISmat).reshape(q2EMISmat.shape).any(axis=0)
     freQ2[:,cityMat==0] = False
     
@@ -273,7 +248,7 @@ for kk,pol in enumerate(pollutants):
     q3EMIS = dataEMIS[boolEvents,:,:,:].flatten()[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']<pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()>minMeanEmis)]
     q3EMISmat = dataEMIS[boolEvents,:,:,:]
     q3EMISmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']<pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis)]=np.nan
-    freQ3 = np.nansum(np.isnan(q3EMISmat).reshape(q3EMISmat.shape),axis=0)
+    #freQ3 = np.nansum(np.isnan(q3EMISmat).reshape(q3EMISmat.shape),axis=0)
     freQ3 = np.isnan(q3EMISmat).reshape(q3EMISmat.shape).any(axis=0)
     freQ3[:,cityMat==0] = False
     
@@ -282,19 +257,27 @@ for kk,pol in enumerate(pollutants):
     q4EMIS = dataEMIS[boolEvents,:,:,:].flatten()[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()>minMeanEmis)]
     q4EMISmat = dataEMIS[boolEvents,:,:,:]
     q4EMISmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis)]=np.nan
-    freQ4 = np.nansum(np.isnan(q4EMISmat).reshape(q4EMISmat.shape),axis=0)
+    #freQ4 = np.nansum(np.isnan(q4EMISmat).reshape(q4EMISmat.shape),axis=0)
     freQ4 = np.isnan(q4EMISmat).reshape(q4EMISmat.shape).any(axis=0)
     freQ4[:,cityMat==0] = False
     
+    # Matriz do BRAIN para o quadrante 4
     q4BRAINmat = dataBRAIN[boolEvents,:,:,:]*pol['conv']
     q4BRAINmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis)]=np.nan
+    
+    # EFICIENCIA DE ABATIMENTO ETAPA 1
+    # Redução da emissão para os níveis do Q2
+    q4EMISmat2 = dataEMIS[boolEvents,:,:,:]
+    q4EMISmat2[~((dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis))]=np.nan
+    q4EMISmatE1 = ((minMeanEmis - q4EMISmat2)/q4EMISmat2)*100
     
     #%%
     del dataBRAIN, dataEMIS,ds
     
+    # FIGURA SCATTER DOS QUADRANTES
     fig, ax = plt.subplots()
     ax.scatter(q4EMIS,q4BRAIN,
-               s=.1,alpha=.2,c='#E72C31')
+               s=.1,alpha=.2,c='#E72C31', label = 'Q4')
     if pol['Criteria']!=None:
         ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=1,
                       label='Air quality standard')
@@ -303,24 +286,25 @@ for kk,pol in enumerate(pollutants):
                        label='Lowest significant emission')
         
     ax.scatter(q1EMIS,q1BRAIN,
-               s=.1,alpha=.2,c='#71CCF1')
+               s=.1,alpha=.2,c='#71CCF1', label = 'Q1')
     
     ax.scatter(q3EMIS,q3BRAIN,
-               s=.1,alpha=.2,c='#FDC45C')
+               s=.1,alpha=.2,c='#FDC45C', label = 'Q3')
     
     ax.scatter(q2EMIS,q2BRAIN,
-               s=.1,alpha=.2,c='#FF7533')
+               s=.1,alpha=.2,c='#FF7533', label = 'Q2')
     
     ax.set_yscale('log')
     ax.set_xscale('log')
     ax.set_ylabel('Air quality\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=8)
     ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+pol+'.png', format="png",
+    ax.legend()
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
     
     
-    # Figure frequencia no Q4
+    # Figure frequencia no Q4 - QUADRANTES NO ESPAÇO
     fig,ax = plt.subplots()
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [[0,0,0,0],'#71CCF1','#71CCF1'])
     heatmap = ax.pcolor(lonBRAIN,latBRAIN,freQ1[0,:,:].data,cmap=cmap)
@@ -355,5 +339,28 @@ for kk,pol in enumerate(pollutants):
     dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
     ax.set_frame_on(False)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/spatialQ_'+pol+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/spatialQ_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
+    
+    
+    # FIGURA ABATIMENTO DAS EMISSÕES NO Q4 - ETAPA 1
+    fig,ax = plt.subplots()
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#E72C31'])
+    heatmap = ax.pcolor(lonBRAIN,latBRAIN,q4EMISmatE1[0,0,:],cmap=cmap)
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,
+                        #ticks=bounds,
+                        #extend='both',
+                        spacing='uniform',
+                        orientation='horizontal',
+                        #norm=norm,
+                        ax=ax)
+    cbar.ax.tick_params(rotation=30)
+    ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
+    ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    shape_path= '/mnt/sdb1/shapefiles/BR_regions.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    dataShp = gpd.read_file(shape_path)
+    dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
