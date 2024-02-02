@@ -76,9 +76,9 @@ PM25 = {
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[NO2]
+pollutants=[CO]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
-criterias = [260,240,220,200]
+criterias = [260,240,220,200] # NO2
 
 
 #------------------------------PROCESSING--------------------------------------
