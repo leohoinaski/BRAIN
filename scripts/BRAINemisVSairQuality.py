@@ -376,5 +376,7 @@ for kk,pol in enumerate(pollutants):
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/Reduction_'+pol['tag']+'.png', format="png",
+               bbox_inches='tight',dpi=300)
     
     
