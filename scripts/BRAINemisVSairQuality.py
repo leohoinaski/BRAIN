@@ -27,6 +27,8 @@ from scipy.stats import gaussian_kde
 import scipy
 from shapely.geometry import Point
 import pandas as pd
+import matplotlib as mpl
+
 # -------------------------------INPUTS----------------------------------------
 
 
@@ -77,8 +79,11 @@ pollutants=[NO2,SO2,O3,PM10,PM25]
 pollutants=[NO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
+
+
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
+rootFolder = os.path.dirname(os.path.dirname(BASE))
 dataFolder = os.path.dirname(BASE)+'/data'
 airQualityFolder =  dataFolder+'/BRAIN'
 emissFolder =  dataFolder+'/EMIS'
@@ -141,9 +146,9 @@ for kk,pol in enumerate(pollutants):
     dataBRAIN = dataBRAIN[loc,:,:,:]
     datesTimeBRAIN = datesTimeBRAIN.iloc[loc,:]
     
-    #%% Removendo dados fora do Brasil
+    #% Removendo dados fora do Brasil
     
-    shape_path= '/mnt/sdb1/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
     
     def dataINshape(xlon,ylat,uf):
@@ -167,7 +172,7 @@ for kk,pol in enumerate(pollutants):
     dataBRAIN[:,:,cityMat==0] = np.nan
     dataEMIS[:,:,cityMat==0] = np.nan
     
-    #%%
+    #%
     # ------------Média dos eventos ao logo do ano em todo domínio-----------------
     
     meanEvents = np.nanpercentile(dataBRAIN[:,0,:,:].reshape(dataBRAIN.shape[0],-1), 50,axis=1)
@@ -220,7 +225,7 @@ for kk,pol in enumerate(pollutants):
     fig.savefig(os.path.dirname(BASE)+'/figures'+'/boxplotViolateEmissions_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
-    #%% Encontrando dados em cada quadrante
+    #% Encontrando dados em cada quadrante
     #dataBRAINflat = dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']
     #dataEMISflat = dataEMIS[boolEvents,:,:,:].flatten()
     
@@ -269,10 +274,10 @@ for kk,pol in enumerate(pollutants):
     # Redução da emissão para os níveis do Q2
     q4EMISmat2 = dataEMIS[boolEvents,:,:,:]
     q4EMISmat2[~((dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis))]=np.nan
-    q4EMISmatE1 = ((minMeanEmis - q4EMISmat2)/q4EMISmat2)*100
+    q4EMISmatE1 = ((q4EMISmat2-minMeanEmis)/q4EMISmat2)*100
     
     #%%
-    del dataBRAIN, dataEMIS,ds
+    del dataBRAIN, dataEMIS,ds, lonBRAINflat, latBRAINflat
     
     # FIGURA SCATTER DOS QUADRANTES
     fig, ax = plt.subplots()
@@ -333,7 +338,7 @@ for kk,pol in enumerate(pollutants):
     ax.set_xticks([])
     ax.set_yticks([])
     
-    shape_path= '/mnt/sdb1/shapefiles/BR_regions.shp'
+    shape_path= rootFolder+'/shapefiles/BR_regions.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
@@ -345,22 +350,31 @@ for kk,pol in enumerate(pollutants):
     
     # FIGURA ABATIMENTO DAS EMISSÕES NO Q4 - ETAPA 1
     fig,ax = plt.subplots()
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#E72C31'])
-    heatmap = ax.pcolor(lonBRAIN,latBRAIN,q4EMISmatE1[0,0,:],cmap=cmap)
-    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,
-                        #ticks=bounds,
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#FDC45C','#FF7533','#E72C31',])
+    
+    bounds = np.array([0,1,5,10,30,60,90,95,99,100])
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    heatmap = ax.pcolor(lonBRAIN,latBRAIN,np.nanmean(q4EMISmatE1[:,0,:,:],axis=0),cmap='jet',norm=norm)
+    cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02,
+                        ticks=bounds,
                         #extend='both',
                         spacing='uniform',
                         orientation='horizontal',
-                        #norm=norm,
+                        norm=norm,
                         ax=ax)
     cbar.ax.tick_params(rotation=30)
+    cbar.ax.set_xlabel(polEmis+'\nRedução média da emissão (%)', rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 6
+    cbar.ax.tick_params(labelsize=7) 
     ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
     ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
     ax.set_xticks([])
     ax.set_yticks([])
-    shape_path= '/mnt/sdb1/shapefiles/BR_regions.shp'
+    ax.set_frame_on(False)
+    shape_path= rootFolder+'/shapefiles/BR_regions.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
+    
+    
