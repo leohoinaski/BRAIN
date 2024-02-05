@@ -110,7 +110,7 @@ for kk,pol in enumerate(pollutants):
         ds = nc.Dataset(prefixed[0])
         dataEMIS = np.nanpercentile(ds[polEmis][0:8759,:,:,:],50,axis=0)
         emisAve.append(dataEMIS)
-        emisMax(np.nanpercentile(ds[polEmis][0:8759,:,:,:],99,axis=0))
+        emisMax.append(np.nanpercentile(ds[polEmis][0:8759,:,:,:],99,axis=0))
 
     
     latBRAIN = ds['LAT'][:]
