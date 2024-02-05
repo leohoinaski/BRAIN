@@ -108,11 +108,10 @@ for kk,pol in enumerate(pollutants):
         fileType='BRAIN_BASEMIS_'+domain+'_2019_'+emisType+'_'+polEmis+'_'+str(year)
         prefixed = sorted([filename for filename in os.listdir(emissFolder) if filename.startswith(fileType)])
         ds = nc.Dataset(prefixed[0])
-        dataEMIS = np.nanpercentile(ds[polEmis][0:8759,:,:,:],50,axis=0)
-        emisAve.append(dataEMIS)
+        emisAve.append(np.nanpercentile(ds[polEmis][0:8759,:,:,:],50,axis=0))
         emisMax.append(np.nanpercentile(ds[polEmis][0:8759,:,:,:],99,axis=0))
 
-    
+    dataEMIS = ds[polEmis][0:8759,:,:,:]
     latBRAIN = ds['LAT'][:]
     lonBRAIN = ds['LON'][:]
     
