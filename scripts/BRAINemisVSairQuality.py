@@ -76,11 +76,11 @@ PM25 = {
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[CO]
+pollutants=[NO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 criterias = [260,240,220,200] # NO2
 
-
+criterias = [260]
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))
@@ -293,29 +293,44 @@ for kk,pol in enumerate(pollutants):
         
         # FIGURA SCATTER DOS QUADRANTES
         fig, ax = plt.subplots()
-        ax.scatter(q4EMIS,q4BRAIN,
-                   s=.1,alpha=.2,c='#E72C31', label = 'Q4')
+        q4 = ax.scatter(q4EMIS,q4BRAIN,
+                   s=.1,alpha=1,c='#E72C31', label = 'Q4')
+            
+        q1 = ax.scatter(q1EMIS,q1BRAIN,
+                   s=.1,alpha=1,c='#71CCF1', label = 'Q1')
+        
+        q2 = ax.scatter(q3EMIS,q3BRAIN,
+                   s=.1,alpha=1,c='#FDC45C', label = 'Q3')
+        
+        q3 = ax.scatter(q2EMIS,q2BRAIN,
+                   s=.1,alpha=1,c='#FF7533', label = 'Q2')
+        
         if pol['Criteria']!=None:
-            ax.axhline(y=pol['Criteria'], color='gray', linestyle='--',linewidth=1,
+            ax.axhline(y=pol['Criteria'], color='red', linestyle='--',linewidth=1,
                           label='Air quality standard')
             ax.axvline(x=minMeanEmis, 
                        color='gray', linestyle='--',linewidth=1,
-                           label='Lowest significant emission')
-            
-        ax.scatter(q1EMIS,q1BRAIN,
-                   s=.1,alpha=.2,c='#71CCF1', label = 'Q1')
+                           label='Average of significant emissions')
         
-        ax.scatter(q3EMIS,q3BRAIN,
-                   s=.1,alpha=.2,c='#FDC45C', label = 'Q3')
+        ax.legend(loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+        handles, labels = plt.gca().get_legend_handles_labels()
+        order = [1,3,2,0,4,5]
+        lgnd= ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+
         
-        ax.scatter(q2EMIS,q2BRAIN,
-                   s=.1,alpha=.2,c='#FF7533', label = 'Q2')
+        q1.set_alpha(0.2)
+        q2.set_alpha(0.2)
+        q3.set_alpha(0.2)
+        q4.set_alpha(0.2)
         
         ax.set_yscale('log')
         ax.set_xscale('log')
         ax.set_ylabel('Air quality\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=8)
         ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
-        ax.legend(loc='lower left')
+        
+
+            
+            # You can also use lh.set_sizes([50])
         fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                    bbox_inches='tight',dpi=300)
         
