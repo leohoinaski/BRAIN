@@ -144,10 +144,10 @@ for kk,pol in enumerate(pollutants):
     
     print('Removing emissions outsitde domain')
     for emi in emisMax:
-        emi[:,:,cityMat==0] = np.nan
-        emi[:,:,cityMat==0] = np.nan
+        emi[:,cityMat==0] = np.nan
+        emi[:,cityMat==0] = np.nan
     for emi in emisAve:
-        emi[:,:,cityMat==0] = np.nan
-        emi[:,:,cityMat==0] = np.nan
+        emi[:,cityMat==0] = np.nan
+        emi[:,cityMat==0] = np.nan
         
         
