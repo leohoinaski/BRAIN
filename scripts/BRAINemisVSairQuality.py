@@ -312,10 +312,11 @@ for kk,pol in enumerate(pollutants):
                        color='gray', linestyle='--',linewidth=1,
                            label='Average of significant emissions')
         
-        ax.legend(loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+        #ax.legend(loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [1,3,2,0,4,5]
-        lgnd= ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+        ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],
+                  loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
 
         
         q1.set_alpha(0.2)
