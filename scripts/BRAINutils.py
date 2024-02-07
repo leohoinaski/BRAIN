@@ -62,3 +62,30 @@ def datePrepBRAINemis(ds):
     datesTime['hour'] = dates.hour
     datesTime['datetime']=dates
     return datesTime
+
+def dailyAverage (datesTime,data):
+    if len(data.shape)>3:
+        daily = datesTime.groupby(['year','month','day']).count()
+        dailyData = np.empty((daily.shape[0],data.shape[1],data.shape[2],data.shape[3]))
+        for day in range(0,daily.shape[0]):
+            findArr = (datesTime['year'] == daily.index[day][0]) & \
+                (datesTime['month'] == daily.index[day][1]) & \
+                    (datesTime['day'] == daily.index[day][2]) 
+            dailyData[day,:,:,:] = data[findArr,:,:,:].mean(axis=0)   
+    else:
+        daily = datesTime.groupby(['year','month','day']).count()
+        dailyData = np.empty((daily.shape[0],data.shape[1],data.shape[2]))
+        for day in range(0,daily.shape[0]):
+            findArr = (datesTime['year'] == daily.index[day][0]) & \
+                (datesTime['month'] == daily.index[day][1]) & \
+                    (datesTime['day'] == daily.index[day][2]) 
+            dailyData[day,:,:] = data[findArr,:,:].mean(axis=0)   
+    daily=daily.reset_index()
+    
+    daily['datetime'] = pd.to_datetime(dict(year=daily['year'], 
+                                            month=daily['month'], 
+                                            day=daily['day'],
+                                            hour=0),
+                                       format='%Y-%m-%d %H:00:00').dt.strftime('%Y-%m-%d %H:00:00')
+
+    return dailyData,daily
