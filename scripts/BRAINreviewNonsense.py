@@ -184,7 +184,7 @@ for kk,pol in enumerate(pollutants):
     legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
     #legend ='BRAIN'
     for aqm in aqs.Estacao1:
-        s,cityMat,cityBuffer=BRAINutils.citiesBufferINdomain(lonBRAIN,latBRAIN,aqs,aqm)
+        s,cityMat,cityBuffer=BRAINutils.citiesBufferINdomain(lonBRAIN,latBRAIN,aqs,aqm,'Estacao1')
         #IBGE_CODE=1100205 #    
         cityData,cityDataPoints,cityDataFrame,matData= BRAINutils.dataINcity(dailyData,daily,cityMat,s,aqm)
         cityData2,cityDataPoints2,cityDataFrame2,matData2= BRAINutils.dataINcity(dataSENTINEL,daily,cityMat,s,aqm)

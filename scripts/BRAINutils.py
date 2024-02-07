@@ -132,13 +132,13 @@ def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
         cityDataFrame = cityDataFrame.set_index(['Datetime'])
     return cityData,cityDataPoints,cityDataFrame,matData   
 
-def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE):
+def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE,atribute):
     s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
     s = gpd.GeoDataFrame(geometry=s)
     s.crs = "EPSG:4326"
     s.to_crs("EPSG:4326")
     cities = cities.to_crs(epsg=4326)
-    cityBuffer = cities[cities['CD_MUN']==(IBGE_CODE)].buffer(0.5)
+    cityBuffer = cities[cities[atribute]==(IBGE_CODE)].buffer(0.5)
     cityBuffer.crs = "EPSG:4326"
     pointIn = cityBuffer.geometry.clip(s).explode()
     pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
