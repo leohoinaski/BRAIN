@@ -198,7 +198,7 @@ for kk,pol in enumerate(pollutants):
     ax[0].set_yticks([])    
     dataShp.boundary.plot(ax=ax[0],edgecolor='black',linewidth=0.3)
     ax[0].set_frame_on(False)
-    ax[0].text(0.05, 0.35, 'a) Average', transform=ax[0].transAxes,
+    ax[0].text(0.05, 0.35, 'a) '+polEmis+' Average', transform=ax[0].transAxes,
             size=8)
     
     heatmap = ax[1].pcolor(lonBRAIN,latBRAIN,majorEmitter,
@@ -209,8 +209,8 @@ for kk,pol in enumerate(pollutants):
     ax[1].set_yticks([])    
     dataShp.boundary.plot(ax=ax[1],edgecolor='black',linewidth=0.3)
     ax[1].set_frame_on(False)
-    ax[1].text(0.05, 0.35, 'b) 99° percentile', transform=ax[1].transAxes,
+    ax[1].text(0.05, 0.35, 'b) '+polEmis+' 99° percentile', transform=ax[1].transAxes,
             size=8)
     fig.tight_layout()
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/majorEmitters_'+pol['tag']+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/majorEmitters_'+polEmis+'.png', format="png",
                bbox_inches='tight',dpi=300)
