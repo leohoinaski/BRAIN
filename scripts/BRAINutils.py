@@ -10,6 +10,9 @@ import numpy as np
 from datetime import datetime
 import pandas as pd
 import netCDF4 as nc
+import geopandas as gpd
+from shapely.geometry import Point
+import ismember  
 #from numpy.lib.stride_tricks import sliding_window_view
 #import pyproj
 #from shapely.geometry import Point
@@ -89,3 +92,59 @@ def dailyAverage (datesTime,data):
                                        format='%Y-%m-%d %H:00:00').dt.strftime('%Y-%m-%d %H:00:00')
 
     return dailyData,daily
+
+def dataINshape(xlon,ylat,uf):
+    s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
+    s = gpd.GeoDataFrame(geometry=s)
+    s.crs = "EPSG:4326"
+    s.to_crs("EPSG:4326")
+    uf.crs = "EPSG:4326"
+    pointIn = uf['geometry'].buffer(0.1).clip(s).explode()
+    pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
+    lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
+                        np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
+    s['mask']=0
+    s['mask'][lia]=1
+    cityMat = np.reshape(np.array(s['mask']),(xlon.shape[0],xlon.shape[1]))
+    return s,cityMat  
+
+def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
+    #IBGE_CODE=4202404
+    if np.size(aveData.shape)==4:
+        cityData = aveData[:,:,cityMat==IBGE_CODE]
+        cityDataPoints = s[s.city.astype(float)==IBGE_CODE]
+        cityData = cityData[:,0,:]
+        matData = aveData.copy()
+        matData[:,:,cityMat!=IBGE_CODE]=np.nan
+        cityDataFrame=pd.DataFrame(cityData)
+        cityDataFrame.columns = cityDataPoints.geometry.astype(str)
+        cityDataFrame['Datetime']=datesTime.datetime
+        cityDataFrame = cityDataFrame.set_index(['Datetime'])
+    else:
+        cityData = aveData[:,cityMat==int(IBGE_CODE)]
+        cityDataPoints = s[s.city.astype(float)==int(IBGE_CODE)]
+        cityData = cityData[:,:]
+        matData = aveData.copy()
+        matData[:,cityMat!=int(IBGE_CODE)]=np.nan
+        cityDataFrame=pd.DataFrame(cityData)
+        cityDataFrame.columns = cityDataPoints.geometry.astype(str)
+        cityDataFrame['Datetime']=datesTime.datetime
+        cityDataFrame = cityDataFrame.set_index(['Datetime'])
+    return cityData,cityDataPoints,cityDataFrame,matData   
+
+def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE):
+    s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
+    s = gpd.GeoDataFrame(geometry=s)
+    s.crs = "EPSG:4326"
+    s.to_crs("EPSG:4326")
+    cities = cities.to_crs(epsg=4326)
+    cityBuffer = cities[cities['CD_MUN']==(IBGE_CODE)].buffer(0.5)
+    cityBuffer.crs = "EPSG:4326"
+    pointIn = cityBuffer.geometry.clip(s).explode()
+    pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
+    lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
+                        np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
+    s['city']=np.nan
+    s.iloc[lia,1]=cities['CD_MUN'][pointIn['level_0'][loc]].values
+    cityMat = np.reshape(np.array(s.city),(xlon.shape[0],xlon.shape[1])).astype(float)
+    return s,cityMat,cityBuffer
