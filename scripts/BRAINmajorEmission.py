@@ -24,6 +24,7 @@ from shapely.geometry import Point
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.patches as mpatches
+import matplotlib.ticker as mtick
 # -------------------------------INPUTS----------------------------------------
 
 
@@ -74,7 +75,7 @@ pollutants=[NO2,SO2,O3,PM10,PM25]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
-#pollutants=[CO]
+pollutants=[CO]
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))
@@ -171,7 +172,8 @@ for kk,pol in enumerate(pollutants):
     majorEmittersAve.append(majorEmitterAve)
     
     #%%
-    shape_path= rootFolder+'/shapefiles/BR_regions.shp'
+    #shape_path= rootFolder+'/shapefiles/BR_regions.shp'
+    shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
@@ -180,37 +182,111 @@ for kk,pol in enumerate(pollutants):
     yb = [np.nanmin(latBRAIN[~np.isnan(majorEmitter)[:,:]]),
           np.nanmax(latBRAIN[~np.isnan(majorEmitter)[:,:]])]
     
-    fig,ax = plt.subplots(1,2)
+    fig,ax = plt.subplots(2,2,height_ratios=[4, 1])
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(18*cm, 9*cm)
+    fig.set_size_inches(18*cm, 15*cm)
     cmap = matplotlib.colors.ListedColormap(updatedColors)
     bound = np.array(np.array(range(0,len(emisNamesUpdated)+1)))
-    heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,majorEmitterAve,
+    heatmap = ax[0,0].pcolor(lonBRAIN,latBRAIN,majorEmitterAve,
                         cmap=cmap)
     # Preparing borders for the legend
     bound_prep = np.round(bound * 7, 2)
     # Creating 8 Patch instances
-    ax[0].legend([mpatches.Patch(color=cmap(b)) for b in bound[:-1]],
+    ax[0,0].legend([mpatches.Patch(color=cmap(b)) for b in bound[:-1]],
                emisNamesUpdated,loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
-    ax[0].set_xlim([xb[0], xb[1]])
-    ax[0].set_ylim([yb[0], yb[1]])
-    ax[0].set_xticks([])
-    ax[0].set_yticks([])    
-    dataShp.boundary.plot(ax=ax[0],edgecolor='black',linewidth=0.3)
-    ax[0].set_frame_on(False)
-    ax[0].text(0.05, 0.35, 'a) '+polEmis+' Average', transform=ax[0].transAxes,
-            size=8)
+    ax[0,0].set_xlim([xb[0], xb[1]])
+    ax[0,0].set_ylim([yb[0], yb[1]])
+    ax[0,0].set_xticks([])
+    ax[0,0].set_yticks([])    
+    dataShp.boundary.plot(ax=ax[0,0],edgecolor='black',linewidth=0.3)
+    ax[0,0].set_frame_on(False)
+    ax[0,0].text(0.0, 0.35, 'a) Average'+'\n'+polEmis+' major emitters', transform=ax[0,0].transAxes,
+            size=7)
     
-    heatmap = ax[1].pcolor(lonBRAIN,latBRAIN,majorEmitter,
+    heatmap = ax[0,1].pcolor(lonBRAIN,latBRAIN,majorEmitter,
                         cmap=cmap)
-    ax[1].set_xlim([xb[0], xb[1]])
-    ax[1].set_ylim([yb[0], yb[1]])
-    ax[1].set_xticks([])
-    ax[1].set_yticks([])    
-    dataShp.boundary.plot(ax=ax[1],edgecolor='black',linewidth=0.3)
-    ax[1].set_frame_on(False)
-    ax[1].text(0.05, 0.35, 'b) '+polEmis+' 99° percentile', transform=ax[1].transAxes,
-            size=8)
+    ax[0,1].set_xlim([xb[0], xb[1]])
+    ax[0,1].set_ylim([yb[0], yb[1]])
+    ax[0,1].set_xticks([])
+    ax[0,1].set_yticks([])    
+    dataShp.boundary.plot(ax=ax[0,1],edgecolor='black',linewidth=0.3)
+    ax[0,1].set_frame_on(False)
+    ax[0,1].text(0.0, 0.35, 'b) 99° percentile'+'\n'+polEmis+' major emitters', transform=ax[0,1].transAxes,
+            size=7)
+    #fig.tight_layout()
+
+    
+    
+    # Por estado
+    shape_path= rootFolder+'/shapefiles/Brasil.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    dataShp = gpd.read_file(shape_path)
+    
+    dataBox=[]
+    dataBoxAve=[]
+    
+    dfMajor=pd.DataFrame()
+    dfMajor['state'] = dataShp['UF']
+    dfMajor['region'] = dataShp['REGIAO']
+    dfMajorAve=pd.DataFrame()
+    dfMajorAve['state'] = dataShp['UF']
+    dfMajorAve['region'] = dataShp['REGIAO']
+    for kk, source in enumerate(emisNamesUpdated):
+        dfMajor[source] = np.nan
+        dfMajorAve[source] = np.nan
+        
+    for jj,state in enumerate(dataShp['UF']):
+        uf = dataShp[dataShp['UF']==state]
+        s,cityMat=dataINshape(lonBRAIN,latBRAIN,uf)
+        dataBox.append(majorEmitter[cityMat==1][~np.isnan(majorEmitter[cityMat==1])])
+        dataBoxAve.append(majorEmitter[cityMat==1][~np.isnan(majorEmitterAve[cityMat==1])])
+        
+        for kk, source in enumerate(emisNamesUpdated):
+            dfMajor[source][jj] = np.sum(majorEmitter[cityMat==1][~np.isnan(majorEmitter[cityMat==1])]==kk)
+            dfMajorAve[source][jj] = np.sum(majorEmitterAve[cityMat==1][~np.isnan(majorEmitterAve[cityMat==1])]==kk)
+
+    dfMajor['total']=dfMajor[emisNamesUpdated].sum(axis=1)
+    dfMajor[emisNamesUpdated] = 100*dfMajor[emisNamesUpdated]/np.repeat(dfMajor['total'].values,len(emisNamesUpdated),axis=0).reshape(dfMajor[emisNamesUpdated].shape)
+    dfMajor= dfMajor.sort_values(by=['region']).reset_index()
+    try:
+        dfMajor.drop('level_0', axis=1, inplace=True)
+    except:
+        print('')
+        
+    dfMajorAve['total']=dfMajorAve[emisNamesUpdated].sum(axis=1)
+    dfMajorAve[emisNamesUpdated] = 100*dfMajorAve[emisNamesUpdated]/np.repeat(dfMajorAve['total'].values,len(emisNamesUpdated),axis=0).reshape(dfMajorAve[emisNamesUpdated].shape)
+    dfMajorAve= dfMajorAve.sort_values(by=['region']).reset_index()
+    try:
+        dfMajorAve.drop('level_0', axis=1, inplace=True)
+    except:
+        print('')
+            
+        
+    
+    dfMajorAve[emisNamesUpdated].plot.bar(stacked=True,color=updatedColors,ax=ax[1,0])
+    ax[1,0].yaxis.set_major_formatter(mtick.PercentFormatter())    
+    ax[1,0].set_xticks(np.array(dfMajorAve['state'].index), dfMajorAve['state'],fontsize=7)
+    ax[1,0].set_ylim([0,100])
+    ax[1,0].tick_params(axis='both', which='major', labelsize=6)
+    ax[1,0].set_ylabel('c) Average \n'+polEmis+' Major source (%)' ,fontsize=8)
+    #cm = 1/2.54  # centimeters in inches
+    #fig.set_size_inches(18*cm, 6*cm)
+    # fill with colors
+    #ax[1,0].legend(loc='lower right' ,fontsize=8, markerscale=15)
+    ax[1,0].get_legend().remove()
+    
+    dfMajor[emisNamesUpdated].plot.bar(stacked=True,color=updatedColors,ax=ax[1,1])
+    ax[1,1].yaxis.set_major_formatter(mtick.PercentFormatter())    
+    ax[1,1].set_xticks(np.array(dfMajor['state'].index), dfMajor['state'],fontsize=7)
+    ax[1,1].set_ylim([0,100])
+    ax[1,1].tick_params(axis='both', which='major', labelsize=6)
+    ax[1,1].set_ylabel('d) 99° percentile'+'\n'+polEmis+ ' Major source (%)' ,fontsize=8)
+    # fill with colors
+    #ax[1,1].legend(loc='lower right' ,fontsize=8, markerscale=15)
+    ax[1,1].get_legend().remove()
+    fig.subplots_adjust(hspace=0)
     fig.tight_layout()
     fig.savefig(os.path.dirname(BASE)+'/figures'+'/majorEmitters_'+polEmis+'.png', format="png",
-               bbox_inches='tight',dpi=300)
+              bbox_inches='tight',dpi=300)
+    
