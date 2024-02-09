@@ -165,7 +165,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,legend,
     
     #ax[1].set_ylabel(cityArea['NM_MUN'].to_string(index=False)+'\n'+legend,fontsize=6)
     fig.tight_layout()
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesNonsense_'+pol['tag']+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesNonsense_'+pol['tag']+'_'+aqm+'.png', format="png",
                bbox_inches='tight',dpi=300)
     return matData.shape
 #%%
@@ -194,7 +194,7 @@ for kk,pol in enumerate(pollutants):
     prefixed = sorted([filename for filename in os.listdir(brainFolder) if filename.startswith(fileType)])
     ds = nc.MFDataset(prefixed)
     # Selecting variable
-    dataBRAIN = ds[pol['tag']][:]
+    dataBRAIN = ds[pol['tag']][:]*pol['conv']
     # Get datesTime and removing duplicates
     datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
     latBRAIN = ds['LAT'][:]
