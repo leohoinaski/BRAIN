@@ -111,8 +111,8 @@ def dataINshape(xlon,ylat,uf):
 def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
     #IBGE_CODE=4202404
     if np.size(aveData.shape)==4:
-        cityData = aveData[:,:,cityMat==IBGE_CODE]
-        cityDataPoints = s[s.city.astype(float)==IBGE_CODE]
+        cityData = aveData[:,:,cityMat==1]
+        cityDataPoints = s[s.city.astype(float)==1]
         cityData = cityData[:,0,:]
         matData = aveData.copy()
         matData[:,:,cityMat!=IBGE_CODE]=np.nan
@@ -121,8 +121,8 @@ def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
         cityDataFrame['Datetime']=datesTime.datetime
         cityDataFrame = cityDataFrame.set_index(['Datetime'])
     else:
-        cityData = aveData[:,cityMat==int(IBGE_CODE)]
-        cityDataPoints = s[s.city.astype(float)==int(IBGE_CODE)]
+        cityData = aveData[:,cityMat==int(1)]
+        cityDataPoints = s[s.city.astype(float)==int(1)]
         cityData = cityData[:,:]
         matData = aveData.copy()
         matData[:,cityMat!=int(IBGE_CODE)]=np.nan
@@ -138,13 +138,14 @@ def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE,atribute):
     s.crs = "EPSG:4326"
     s.to_crs("EPSG:4326")
     cities = cities.to_crs(epsg=4326)
-    cityBuffer = cities[cities[atribute]==(IBGE_CODE)].buffer(0.5)
+    cityBuffer = cities[cities[atribute]==(IBGE_CODE)].buffer(0.2)
     cityBuffer.crs = "EPSG:4326"
     pointIn = cityBuffer.geometry.clip(s).explode()
     pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
     lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
                         np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
     s['city']=np.nan
-    s.iloc[lia,1]=cities['CD_MUN'][pointIn['level_0'][loc]].values
+    #s.iloc[lia,1]=cities[atribute][pointIn['level_0'][loc]].values
+    s.iloc[lia,1]=1
     cityMat = np.reshape(np.array(s.city),(xlon.shape[0],xlon.shape[1])).astype(float)
     return s,cityMat,cityBuffer
