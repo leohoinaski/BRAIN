@@ -70,7 +70,7 @@ PM25 = {
 }
 
 #%%
-def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,legend,
+def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                xlon,ylat,criteria,BASE,pol,aveTime,aqm):
     import matplotlib.dates as mdates
 
@@ -135,17 +135,18 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,legend,
     for label in ax[1].get_xticklabels(which='major'):
         label.set(rotation=30, horizontalalignment='right')
     ax[1].legend(prop={'size': 6},loc='upper left', frameon=False)
-    
+    cmap
     ax2 = ax[1].twinx()
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["lightblue","royalblue"])
+    #cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["lightblue","royalblue"])
+    
     xdata = [datetime.datetime.strptime(x, '%Y-%m-%d 00:00:00') for x in cityDataFrame2.mean(axis=1).dropna().index]
     ax2.fill_between(xdata,cityDataFrame2.max(axis=1).dropna(), cityDataFrame2.min(axis=1).dropna(),
-                     color=cmap(0.8),       # The outline color
-                     facecolor=cmap(0.8),
+                     color=cmap2(0.8),       # The outline color
+                     facecolor=cmap2(0.8),
                      edgecolor=None,
                      alpha=0.2,label='Min-Max')          # Transparency of the fill
     ax2.plot(xdata,cityDataFrame2.mean(axis=1).dropna(),
-               color=cmap(0.8),linewidth=1,label='SENTINEL Average')
+               color=cmap2(0.8),linewidth=1,label='SENTINEL Average')
     ax2.xaxis.set_tick_params(labelsize=6)
     ax2.yaxis.set_tick_params(labelsize=6)
     ax2.set_xlim([np.nanmin([y]),np.nanmax([y])])
@@ -216,11 +217,10 @@ for kk,pol in enumerate(pollutants):
     dataSENTINEL = ds[pol['tag']][:]
     # Get datesTime and removing duplicates
     
-
-
-
     #cmap = 'YlOrRd'
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","turquoise"])
+    #cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","turquoise"])
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
+    cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","crimson","darkred"])
     
     legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
     #legend ='BRAIN'
@@ -229,6 +229,6 @@ for kk,pol in enumerate(pollutants):
         #IBGE_CODE=1100205 #    
         cityData,cityDataPoints,cityDataFrame,matData= BRAINutils.dataINcity(dailyData,daily,cityMat,s,aqm)
         cityData2,cityDataPoints2,cityDataFrame2,matData2= BRAINutils.dataINcity(dataSENTINEL,daily,cityMat,s,aqm)
-        cityTimeSeries(cityDataFrame,(10**4)*cityDataFrame2,aqm,cmap,legend,
+        cityTimeSeries(cityDataFrame,(10**4)*cityDataFrame2,aqm,cmap,cmap2,legend,
                        lonBRAIN,latBRAIN,None,BASE,pol,24,aqm)
         
