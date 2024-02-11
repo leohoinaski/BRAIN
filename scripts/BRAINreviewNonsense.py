@@ -78,10 +78,10 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
     fig, ax = plt.subplots(1,2,gridspec_kw={'width_ratios': [2, 3],
                                             'wspace':0.4, 'hspace':0.4})
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(14*cm, 5*cm)
+    fig.set_size_inches(16*cm, 5*cm)
     
     ax[0].scatter(cityDataFrame2.mean(axis=1),cityDataFrame.mean(axis=1),
-                  s=2,alpha=.5,c='darkturquoise')
+                  s=2,alpha=.5,c='chocolate')
     x = np.array([cityDataFrame.mean(axis=1),cityDataFrame2.mean(axis=1)])
     x = x[:,~np.isnan(x).any(axis=0)]
     ###calculate Spearman correlation using new_df
@@ -121,7 +121,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                color=cmap(0.8),linewidth=1,label='BRAIN Average')
     ax[1].xaxis.set_tick_params(labelsize=6)
     ax[1].yaxis.set_tick_params(labelsize=6)
-    ax[1].set_ylim([np.nanmin([preds]),np.nanmax([preds])])
+    ax[1].set_ylim([np.nanmin([preds]),np.nanmax([preds])*1.8])
     #ax[1].set_ylim([np.nanmin(cityDataFrame)*0.95,np.nanmax(cityDataFrame)*1.05])
     ax[1].set_xlim([np.min(xdata),np.max(xdata)])
     ax[1].xaxis.set_major_locator(mdates.MonthLocator(interval=1))
@@ -149,7 +149,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                color=cmap2(0.8),linewidth=1,label='SENTINEL Average')
     ax2.xaxis.set_tick_params(labelsize=6)
     ax2.yaxis.set_tick_params(labelsize=6)
-    ax2.set_xlim([np.nanmin([y]),np.nanmax([y])])
+    ax2.set_ylim([np.nanmin([y]),np.nanmax([y])*2])
     #ax2.set_ylim([np.nanmin(cityDataFrame2)*0.95,np.nanmax(cityDataFrame2)*1.05])
     ax2.set_xlim([np.min(xdata),np.max(xdata)])
     ax2.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
@@ -170,7 +170,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                bbox_inches='tight',dpi=300)
     return matData.shape
 #%%
-pollutants=[NO2,CO]
+pollutants=[O3]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -219,8 +219,8 @@ for kk,pol in enumerate(pollutants):
     
     #cmap = 'YlOrRd'
     #cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","turquoise"])
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
-    cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","crimson","darkred"])
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["orange","red"])
+    cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","cornsilk","yellow","darkred"])
     
     legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
     #legend ='BRAIN'
@@ -231,4 +231,5 @@ for kk,pol in enumerate(pollutants):
         cityData2,cityDataPoints2,cityDataFrame2,matData2= BRAINutils.dataINcity(dataSENTINEL,daily,cityMat,s,aqm)
         cityTimeSeries(cityDataFrame,(10**4)*cityDataFrame2,aqm,cmap,cmap2,legend,
                        lonBRAIN,latBRAIN,None,BASE,pol,24,aqm)
+        
         

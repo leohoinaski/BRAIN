@@ -32,7 +32,7 @@ import scipy
 from shapely.geometry import Point
 import pandas as pd
 # -------------------------------INPUTS----------------------------------------
-coarseDomain = 'SENTINEL'
+coarseDomain = 'MERRA'
 refinedDomain = 'BRAIN' 
 
 NO2 = {
