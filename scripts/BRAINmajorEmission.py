@@ -71,11 +71,11 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[NO2,SO2,O3,PM10,PM25]
+pollutants=[CO,NO2,SO2,O3,PM10,PM25]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
-pollutants=[CO]
+#pollutants=[CO]
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))

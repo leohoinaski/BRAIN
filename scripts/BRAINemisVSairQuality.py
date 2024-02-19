@@ -28,7 +28,7 @@ import scipy
 from shapely.geometry import Point
 import pandas as pd
 import matplotlib as mpl
-
+import temporalStatistics as tst
 # -------------------------------INPUTS----------------------------------------
 
 
@@ -38,6 +38,7 @@ NO2 = {
   "conv": 1880,
   "tag":'NO2',
   #"Criteria": 260, # 260, 240, 220, 200
+  "Criteria_ave": 1,
 }
 
 CO = {
@@ -45,20 +46,24 @@ CO = {
   "Unit": 'ppb',
   "conv": 1000, # Conversão de ppm para ppb
   "tag":'CO',
+  "Criteria_ave": 8,
 }
 
 O3 = {
   "Pollutant": "$O_{3}$",
   "Unit": 'ppm',
   "conv": 1,
-  "tag":'O3'
+  "tag":'O3',
+  "Criteria_ave": 8,
 }
 
 SO2 = {
   "Pollutant": "$SO_{2}$",
   "Unit": '$\u03BCg.m^{-3}$',
   "conv": 2620,
-  "tag":'SO2'
+  "tag":'SO2',
+  "Criteria_ave": 24,
+  
 }
 
 PM10 = {
@@ -66,6 +71,7 @@ PM10 = {
   "Unit": '$\u03BCg.m^{-3}$',
   "conv": 1,
   "tag":'PM10',
+  "Criteria_ave": 24,
 }
 
 PM25 = {
@@ -73,6 +79,7 @@ PM25 = {
   "Unit": '$\u03BCg.m^{-3}$',
   "conv": 1,
   "tag":'PM25',
+  "Criteria_ave": 24,
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
@@ -80,7 +87,7 @@ pollutants=[NO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 criterias = [260,240,220,200] # NO2
 
-criterias = [260]
+criterias = [240]
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))
@@ -125,6 +132,7 @@ for kk,pol in enumerate(pollutants):
         os.chdir(os.path.dirname(BASE))
         datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds,dataEMIS[0:8759,:,:,:])
         
+       
         # ========BRAIN files============
         os.chdir(airQualityFolder)
         print(pol)
@@ -147,6 +155,26 @@ for kk,pol in enumerate(pollutants):
         dataBRAIN = dataBRAIN[loc,:,:,:]
         datesTimeBRAIN = datesTimeBRAIN.iloc[loc,:]
         
+        # Converting averaging time
+        if pol['Criteria_ave']==1:
+            dataBRAIN = dataBRAIN.copy()
+            dataEMIS = dataEMIS.copy()
+        elif pol['Criteria_ave']==8:
+            # Daily-maximum 8h-moving average
+            dataBRAIN = tst.movingAverage(datesTimeBRAIN,dataBRAIN,8)
+            datesTimeBRAIN = datesTimeBRAIN.groupby(by=['year', 'month', 'day']).size().reset_index()
+            datesTimeBRAIN['datetime']=pd.to_datetime(datesTimeBRAIN[['year', 'month', 'day']])
+            dataEMIS = tst.movingAverage(datesTimeEMIS,dataEMIS,8)
+            datesTimeEMIS = datesTimeEMIS.groupby(by=['year', 'month', 'day']).size().reset_index()
+            datesTimeEMIS['datetime']=pd.to_datetime(datesTimeEMIS[['year', 'month', 'day']])
+        elif pol['Criteria_ave']==24:
+            # Daily averages
+            dataBRAIN, dailyData = tst.dailyAverage(datesTimeBRAIN,dataBRAIN)
+            datesTimeBRAIN = datesTimeBRAIN.groupby(by=['year', 'month', 'day']).size().reset_index()
+            datesTimeBRAIN['datetime']=pd.to_datetime(datesTimeBRAIN[['year', 'month', 'day']])           
+            dataEMIS, dailyData = tst.dailyAverage(datesTimeEMIS,dataEMIS)
+            datesTimeEMIS = datesTimeEMIS.groupby(by=['year', 'month', 'day']).size().reset_index()
+            datesTimeEMIS['datetime']=pd.to_datetime(datesTimeEMIS[['year', 'month', 'day']])           
         #% Removendo dados fora do Brasil
         
         shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
