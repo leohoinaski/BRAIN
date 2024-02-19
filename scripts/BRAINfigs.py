@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
 #%%
 def brainPcolor(BASE,pol,lonBRAIN,latBRAIN,dataBRAIN,
                 lonMERRA,latMERRA,dataMERRA,borda):
@@ -454,30 +455,55 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,d
             return matData.shape
 
 
-    capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
+def timeseriesSelection(BASE,datesTimeBRAIN,meanEvents,aveMeanEvents,pol):
+    fig, ax = plt.subplots(1,2,gridspec_kw={'width_ratios': [6, 1],'wspace':0, 'hspace':0},
+                           sharey=True)
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(18*cm, 9*cm)
+    # Time series das médias no domínio
+    ax[0].plot(datesTimeBRAIN['datetime'],meanEvents,linewidth=0.5,label='Average',
+               c='red',zorder=0)
+    #ax.set_yscale('log')
+    ax[0].set_ylabel('Air quality \n'+pol['tag']+ ' ('+pol['Unit']+')' ,fontsize=8)
+    ax[0].set_xlabel(None ,fontsize=8)
+    ax[0].xaxis.set_tick_params(labelsize=7,rotation=30)
+    ax[0].yaxis.set_tick_params(labelsize=7)
+    ax[0].set_xlim([np.nanmin(datesTimeBRAIN['datetime']),np.nanmax(datesTimeBRAIN['datetime'])])
+    ax[0].fill_between(datesTimeBRAIN['datetime'],np.nanmin(meanEvents), aveMeanEvents, alpha=0.5,color='white')
+    # Boxplot da média dos domínios
+    #ax[1].boxplot(meanEvents)
+    ax[1].hist(meanEvents, orientation = "horizontal",color='red',edgecolor = "black", alpha=0.7)
+    #ax[1].set_xticks([])
+    ax[1].set_xlabel('Events' ,fontsize=8)
+    ax[1].yaxis.set_tick_params(labelsize=7)
+    ax[1].xaxis.set_tick_params(labelsize=7)
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesSelection_'+pol['tag']+'.png', format="png",
+               bbox_inches='tight',dpi=300)
+    return fig
+    # capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
     
-    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Municipios_2020.shp'
+    # shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Municipios_2020.shp'
     
-    cities = gpd.read_file(shape_path)
-    cities.crs = "EPSG:4326"
-    aveData = dataBRAINinMERRA
-    aveData2 = dataMERRAfiltered
-    datesTime = datesTimeBRAIN
-    xlon,ylat =xvMERRA,yvMERRA 
+    # cities = gpd.read_file(shape_path)
+    # cities.crs = "EPSG:4326"
+    # aveData = dataBRAINinMERRA
+    # aveData2 = dataMERRAfiltered
+    # datesTime = datesTimeBRAIN
+    # xlon,ylat =xvMERRA,yvMERRA 
     
-    #cmap = 'YlOrRd'
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
+    # #cmap = 'YlOrRd'
+    # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","gold","orange","red"])
 
-    legend = 'BRAIN ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
-    #legend ='BRAIN'
-    for IBGE_CODE in capitals.IBGE_CODE:
-        IBGE_CODE=str(IBGE_CODE)
-        s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
-        #IBGE_CODE=1100205 #    
-        cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE)
-        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-                            xlon,ylat,None,
-                            os.path.dirname(BASE)+'/figures/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
+    # legend = 'BRAIN ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+    # #legend ='BRAIN'
+    # for IBGE_CODE in capitals.IBGE_CODE:
+    #     IBGE_CODE=str(IBGE_CODE)
+    #     s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
+    #     #IBGE_CODE=1100205 #    
+    #     cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE)
+    #     cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+    #                         xlon,ylat,None,
+    #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
     
     
     # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","pink","deeppink","purple"])
@@ -491,3 +517,5 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,d
     #     cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
     #                         xlon,ylat,None,
     #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
+    
+    

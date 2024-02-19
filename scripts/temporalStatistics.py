@@ -221,12 +221,12 @@ def getTime(ds,data):
     datesTime = dd.drop_duplicates().reset_index(drop=True)
     return datesTime,data
 
-def getTimeWRF(ds,data):
-    dd = datePrepWRF(ds)
-    idx2Remove = np.array(dd.drop_duplicates().index)
-    data = data[idx2Remove]
-    datesTime = dd.drop_duplicates().reset_index(drop=True)
-    return datesTime,data
+# def getTimeWRF(ds,data):
+#     dd = datePrepWRF(ds)
+#     idx2Remove = np.array(dd.drop_duplicates().index)
+#     data = data[idx2Remove]
+#     datesTime = dd.drop_duplicates().reset_index(drop=True)
+#     return datesTime,data
 
 def citiesINdomain(xlon,ylat,cities):
     s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
@@ -266,3 +266,10 @@ def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
         cityDataFrame = cityDataFrame.set_index(['Datetime'])
     return cityData,cityDataPoints,cityDataFrame,matData
 
+def timeseriesFiltering(data,pctile):
+    data[data>np.nanpercentile(data,pctile,axis=0)] = np.nan
+    return data
+    
+    
+    
+    
