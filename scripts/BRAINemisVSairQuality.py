@@ -247,8 +247,14 @@ for kk,pol in enumerate(pollutants):
         dataBoxPixel=[]
         statDf = pd.DataFrame()
         statDf['UF']=dataShp['UF']
+        statDf['MAXEMIS_'+str(pol['Criteria'])] = np.nan
+        statDf['AVEEMIS_'+str(pol['Criteria'])] = np.nan
+        statDf['NcriticalEvents_'+str(pol['Criteria'])] = np.nan
+        statDf['NcriticalPixels_'+str(pol['Criteria'])] = np.nan
+        statDf['AveReduction_'+str(pol['Criteria'])] = np.nan
+        statDf['MaxReduction_'+str(pol['Criteria'])] = np.nan
         
-        for uf,state in enumerate(dataShp['UF']):
+        for ii,state in enumerate(dataShp['UF']):
             uf = dataShp[dataShp['UF']==state]
             s,cityMat=dataINshape(lonBRAIN,latBRAIN,uf)
             dataEMISuf = dataEMIS[boolEvents,:,:,:]
@@ -258,10 +264,17 @@ for kk,pol in enumerate(pollutants):
             dataBRAINuf[:,:,cityMat==0] = np.nan
             dataBRAINuf[dataBRAINuf*pol['conv']<pol['Criteria']] = np.nan
             dataBoxPixel.append(np.sum(~np.isnan(dataBRAINuf).all(axis=0)))
-            statDf['MAXEMIS_'+str(pol['Criteria'])][uf] = np.nanmax(dataEMISuf[:,:,cityMat==1].flatten()[(dataBRAINuf[:,:,cityMat==1].flatten()*pol['conv']>pol['Criteria'])])
-            statDf['NcriticalEvents_'+str(pol['Criteria'])][uf] = len(dataBRAINuf[:,:,cityMat==1].flatten()[(dataBRAINuf[:,:,cityMat==1].flatten()*pol['conv']>pol['Criteria'])])
-            statDf['NcriticalPixels_'+str(pol['Criteria'])][uf] = np.sum(~np.isnan(dataBRAINuf).all(axis=0))
-            
+            try:
+                statDf['MAXEMIS_'+str(pol['Criteria'])][ii] = np.nanmax(dataEMISuf[:,:,cityMat==1].flatten()[(dataBRAINuf[:,:,cityMat==1].flatten()*pol['conv']>pol['Criteria'])])
+                statDf['AVEEMIS_'+str(pol['Criteria'])][ii] = np.percentile(dataEMISuf[:,:,cityMat==1].flatten()[(dataBRAINuf[:,:,cityMat==1].flatten()*pol['conv']>pol['Criteria'])],50)
+                statDf['NcriticalEvents_'+str(pol['Criteria'])][ii] = len(dataBRAINuf[:,:,cityMat==1].flatten()[(dataBRAINuf[:,:,cityMat==1].flatten()*pol['conv']>pol['Criteria'])])
+                statDf['NcriticalPixels_'+str(pol['Criteria'])][ii] = np.sum(~np.isnan(dataBRAINuf).all(axis=0))
+                
+            except:
+                statDf['MAXEMIS_'+str(pol['Criteria'])][ii] = 0
+                statDf['NcriticalEvents_'+str(pol['Criteria'])][ii] = 0
+                statDf['NcriticalPixels_'+str(pol['Criteria'])][ii] = 0
+                statDf['AVEEMIS_'+str(pol['Criteria'])][ii] = 0
             
         
         fig,ax = plt.subplots(3,1,sharex=True,gridspec_kw={'wspace':0, 'hspace':0.05})
@@ -347,7 +360,7 @@ for kk,pol in enumerate(pollutants):
         
         # Q4 - ALTA EMISSÃO E MÁ QUALIDADE DO AR
         q4BRAIN = (dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv'])[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()>minMeanEmis)]
-        q4EMIS = dataEMIS[boolEvents,ds:,:,:].flatten()[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()>minMeanEmis)]
+        q4EMIS = dataEMIS[boolEvents,:,:,:].flatten()[(dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:].flatten()>minMeanEmis)]
         q4EMISmat = dataEMIS[boolEvents,:,:,:]
         q4EMISmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis)]=np.nan
         #freQ4 = np.nansum(np.isnan(q4EMISmat).reshape(q4EMISmat.shape),axis=0)
@@ -490,13 +503,17 @@ for kk,pol in enumerate(pollutants):
         #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
         dataShp = gpd.read_file(shape_path)
         dataBox=[]
-        for state in dataShp['UF']:
+        for ii,state in enumerate(dataShp['UF']):
             uf = dataShp[dataShp['UF']==state]
             s,cityMat=dataINshape(lonBRAIN,latBRAIN,uf)
             dataBox.append(q4EMISmatE1[:,0:,cityMat==1][~np.isnan(q4EMISmatE1[:,0:,cityMat==1])])
-            statDf['AveReduction_'+str(pol['Criteria'])][uf] = np.percentile(q4EMISmatE1[:,0:,cityMat==1][~np.isnan(q4EMISmatE1[:,0:,cityMat==1])],50)
-            statDf['MaxReduction_'+str(pol['Criteria'])][uf] = np.nanmax(q4EMISmatE1[:,0:,cityMat==1][~np.isnan(q4EMISmatE1[:,0:,cityMat==1])])
-            
+            try:
+                statDf['AveReduction_'+str(pol['Criteria'])][ii] = np.percentile(q4EMISmatE1[:,0:,cityMat==1][~np.isnan(q4EMISmatE1[:,0:,cityMat==1])],50)
+                statDf['MaxReduction_'+str(pol['Criteria'])][ii] = np.nanmax(q4EMISmatE1[:,0:,cityMat==1][~np.isnan(q4EMISmatE1[:,0:,cityMat==1])])
+            except:
+                statDf['AveReduction_'+str(pol['Criteria'])][ii] = 0
+                statDf['MaxReduction_'+str(pol['Criteria'])][ii] = 0
+                
         statDf.to_csv(os.path.dirname(BASE)+'/tables'+'/statistics_'+pol['tag']+'_'+str(pol['Criteria'])+'.csv')
         fig,ax = plt.subplots()
         bplot1 = ax.boxplot(dataBox,
