@@ -657,7 +657,7 @@ def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol):
 
 def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBox):
     # FIGURA ABATIMENTO DAS EMISSÕES NO Q4 - ETAPA 1
-    fig,ax = plt.subplots(2,1,gridspec_kw={'height_ratios': [5, 1],'wspace':0, 'hspace':0})
+    fig,ax = plt.subplots(2,1,gridspec_kw={'height_ratios': [5, 1],'wspace':0, 'hspace':0.4})
     cm = 1/2.54  # centimeters in inches
     fig.set_size_inches(16*cm, 12*cm)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#FDC45C','#FF7533','#E72C31',])
@@ -673,7 +673,7 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBo
                         norm=norm,
                         ax=ax[0])
     cbar.ax.tick_params(rotation=30)
-    cbar.ax.set_xlabel(polEmis+'\nRedução méddataShpia da emissão (%)', rotation=0,fontsize=6)
+    cbar.ax.set_xlabel(polEmis+'\nRedução média da emissão (%)', rotation=0,fontsize=6)
     cbar.ax.get_xaxis().labelpad = 6
     cbar.ax.tick_params(labelsize=7) 
     ax[0].set_xlim([lonBRAIN.min(), lonBRAIN.max()])
@@ -693,9 +693,9 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBo
                patch_artist=True,
                flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': '#FF7400','alpha':0.5})
     ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ax.set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax.tick_params(axis='both', which='major', labelsize=6)
-    ax.set_ylabel(polEmis+'\nRedução da emissão (%)' ,fontsize=8)
+    ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    ax[1].tick_params(axis='both', which='major', labelsize=6)
+    ax[1].set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
     
     # fill with colors
     colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
