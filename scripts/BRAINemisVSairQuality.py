@@ -22,7 +22,7 @@ import pandas as pd
 #import matplotlib.pyplot as plt
 import ismember
 import geopandas as gpd
-#import matplotlib
+import matplotlib
 #from scipy.stats import gaussian_kde
 #import scipy
 #from shapely.geometry import Point
@@ -40,6 +40,9 @@ NO2 = {
   "tag":'NO2',
   #"Criteria": 260, # 260, 240, 220, 200
   "Criteria_ave": 1,
+  #"criterias" : [260,240,220,200],
+  "criterias" : [200],
+  "Criteria_average": '1-h average',
 }
 
 CO = {
@@ -48,14 +51,19 @@ CO = {
   "conv": 1000, # Conversão de ppm para ppb
   "tag":'CO',
   "Criteria_ave": 8,
+  "criterias" : [9000],
+  "Criteria_average": '8-h average',
 }
 
 O3 = {
   "Pollutant": "$O_{3}$",
   "Unit": 'ppm',
-  "conv": 1,
+  "conv":1962 ,
   "tag":'O3',
   "Criteria_ave": 8,
+  #"criterias" : [140,130,120,100],
+  "criterias" : [100],
+  "Criteria_average": '8-h average',
 }
 
 SO2 = {
@@ -64,6 +72,9 @@ SO2 = {
   "conv": 2620,
   "tag":'SO2',
   "Criteria_ave": 24,
+  #"criterias" : [125,50,40,30,20],
+  "criterias" : [40],
+  "Criteria_average": '24-h average',
   
 }
 
@@ -73,6 +84,9 @@ PM10 = {
   "conv": 1,
   "tag":'PM10',
   "Criteria_ave": 24,
+  #"criterias" : [120,100,75,50,45],
+  "criterias" : [45],
+  "Criteria_average": '24-h average',
 }
 
 PM25 = {
@@ -81,14 +95,14 @@ PM25 = {
   "conv": 1,
   "tag":'PM25',
   "Criteria_ave": 24,
+  "criterias" : [60,50,37,25,15],
+  "Criteria_average": '24-h average',
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[NO2]
+pollutants=[SO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
-criterias = [260,240,220,200] # NO2
 
-criterias = [240]
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))
@@ -109,6 +123,7 @@ dataShp = gpd.read_file(shape_path)
         
 print('Looping for each variable')
 for kk,pol in enumerate(pollutants):
+    criterias = pol['criterias']
     for criteria in criterias:
         pol['Criteria'] = criteria
         # ======== EMIS files============
@@ -116,7 +131,7 @@ for kk,pol in enumerate(pollutants):
         if pol['tag']=='CO':
             polEmis = 'CO'
         elif pol['tag']=='O3':
-            polEmis = 'VOC'
+            polEmis = 'NOX'
         elif pol['tag']=='SO2':
             polEmis = 'SOX'
         elif pol['tag'] == 'PM25':
@@ -133,12 +148,13 @@ for kk,pol in enumerate(pollutants):
         for ii, emisType in enumerate(emisTypes):
             fileType='BRAIN_BASEMIS_'+domain+'_2019_'+emisType+'_'+polEmis+'_'+str(year)
             prefixed = sorted([filename for filename in os.listdir(emissFolder) if filename.startswith(fileType)])
-            ds1 = nc.Dataset(prefixed[0])
-            if ii==0:
-                dataEMIS = ds1[polEmis][0:8759,:,:,:]
-            else:
-                dataEMIS = dataEMIS+ds1[polEmis][0:8759,:,:,:]
-                
+            if len(prefixed)>0:
+                ds1 = nc.Dataset(prefixed[0])
+                if ii==0:
+                    dataEMIS = ds1[polEmis][0:8759,:,:,:]
+                else:
+                    dataEMIS = dataEMIS+ds1[polEmis][0:8759,:,:,:]
+                    
         os.chdir(os.path.dirname(BASE))
         datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds1,dataEMIS[0:8759,:,:,:])
         
@@ -195,6 +211,26 @@ for kk,pol in enumerate(pollutants):
         # Removing 1% higher
         dataBRAIN = tst.timeseriesFiltering(dataBRAIN,99)
         #dataEMIS = tst.timeseriesFiltering(dataEMIS,99.9)
+        
+        # Frequency of violations
+        freqExcd= tst.exceedance(dataBRAIN*pol['conv'],pol['Criteria']).astype(float)
+        freqExcd[:,cityMat==0] = np.nan
+        
+        # Figures
+        # Average
+        legend = pol['Criteria_average'] + ' ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+        #cmap = 'YlOrRd'
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["royalblue",'lightskyblue',"azure","yellow","crimson","darkred"])
+        BRAINfigs.timeAverageFig(np.nanmax(dataBRAIN.data,axis=0)[0,:,:]*pol['conv'],lonBRAIN,latBRAIN,legend,cmap,
+                              dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'])
+        
+        # Exceedence
+        legend2 = pol['Criteria_average'] +' ' + pol['Pollutant'] + ' - violations'
+        #cmap = 'RdPu'
+        cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","yellow",'#E72C39',"darkred", 'purple'])
+        BRAINfigs.exceedanceFig(freqExcd[0,:,:],lonBRAIN,latBRAIN,legend2,cmap2,
+                             dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'])
+        
         
         # ------------Média dos eventos ao logo do ano em todo domínio-----------------  
         meanEvents = np.nanpercentile(dataBRAIN[:,0,:,:].reshape(dataBRAIN.shape[0],-1), 50,axis=1)
@@ -306,10 +342,13 @@ for kk,pol in enumerate(pollutants):
         #freQ4 = np.nansum(np.isnan(q4EMISmat).reshape(q4EMISmat.shape),axis=0)
         freQ4 = np.isnan(q4EMISmat).reshape(q4EMISmat.shape).any(axis=0)
         freQ4[:,cityMat==0] = False
+
         
         # Matriz do BRAIN para o quadrante 4
         q4BRAINmat = dataBRAIN[boolEvents,:,:,:]*pol['conv']
         q4BRAINmat[(dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis)]=np.nan
+        q4BRAINmat2 = dataBRAIN[boolEvents,:,:,:]*pol['conv']
+        q4BRAINmat2[~((dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis))]=np.nan
         
         # EFICIENCIA DE ABATIMENTO ETAPA 1
         # Redução da emissão para os níveis do Q2
@@ -317,9 +356,19 @@ for kk,pol in enumerate(pollutants):
         q4EMISmat2[~((dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis))]=np.nan
         q4EMISmatE1 = ((q4EMISmat2-minMeanEmis)/q4EMISmat2)*100
         
+        with open(os.path.dirname(BASE)+'/tables'+'/Q4_'+pol['tag']+'_'+str(pol['Criteria'])+'.npy', 'wb') as f:
+            np.save(f, np.sum(freQ4,axis=0).data)
+            np.save(f, q4BRAINmat2.data)
+            np.save(f, q4EMISmat2.data)
+        
         #%%
-        del dataBRAIN, dataEMIS,ds, lonBRAINflat, latBRAINflat, ds1
-        del q1EMISmat,q2EMISmat,q3EMISmat,q4EMISmat,violDf,violAirQ,violEmis
+        
+        del ds1, ds ,q1EMISmat,q2EMISmat,q3EMISmat,q4EMISmat,violDf,violAirQ,violEmis
+        
+        BRAINfigs.QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
+                     pol,polEmis,minMeanEmis,dataBRAIN[boolEvents,:,:,:]*pol['conv'],dataEMIS[boolEvents,:,:,:])
+        
+        del dataBRAIN, dataEMIS,lonBRAINflat,latBRAINflat
         
         # Figura scatter nos quadrantes
         BRAINfigs.Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
@@ -349,3 +398,5 @@ for kk,pol in enumerate(pollutants):
 
         
         del q4EMISmatE1,q1EMIS,q2EMIS,q3EMIS,q4EMIS,q1BRAIN,q2BRAIN,q3BRAIN,q4BRAIN
+        
+        

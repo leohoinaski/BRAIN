@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-
+import scipy
 #%%
 def brainPcolor(BASE,pol,lonBRAIN,latBRAIN,dataBRAIN,
                 lonMERRA,latMERRA,dataMERRA,borda):
@@ -573,6 +573,8 @@ def Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
              pol,polEmis,minMeanEmis):
     # FIGURA SCATTER DOS QUADRANTES
     fig, ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(12*cm, 12*cm)
     q4 = ax.scatter(q4EMIS,q4BRAIN,
                s=.1,alpha=1,c='#E72C31', label = 'Q4')
         
@@ -611,6 +613,114 @@ def Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
         
         # You can also use lh.set_sizes([50])
     fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+               bbox_inches='tight',dpi=300)
+    
+def QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
+             pol,polEmis,minMeanEmis,dataBRAIN,dataEMIS):
+    
+    ###calculate Spearman correlation using new_df
+    try:
+        nas = np.logical_or(np.isnan(dataBRAIN.data.flatten()), np.isnan(dataEMIS.data.flatten()))
+    except:
+         nas = np.logical_or(np.isnan(dataBRAIN.flatten()), np.isnan(dataEMIS.flatten()))
+   
+    corr, p_value = scipy.stats.spearmanr(dataBRAIN.flatten()[~nas],dataEMIS.flatten()[~nas])
+   
+    ###insert text with Spearman correlation
+    # ax.annotate('ρ = {:.2f}'.format(corr), 
+    #         xy=(0.70, 0.9), xycoords='axes fraction', 
+    #         fontsize=8, ha='left', va='center')
+ 
+
+    
+    # FIGURA SCATTER DOS QUADRANTES
+    fig, ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(12*cm, 12*cm)
+    q4 = ax.scatter(q4EMIS,q4BRAIN,
+               s=.1,alpha=1,c='#E72C31', label = None)
+        
+    q1 = ax.scatter(q1EMIS,q1BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+    
+    q2 = ax.scatter(q3EMIS,q3BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+    
+    q3 = ax.scatter(q2EMIS,q2BRAIN,
+               s=.1,alpha=1,c='#E72C31', label = None)
+    
+    if pol['Criteria']!=None:
+        ax.axhline(y=pol['Criteria'], color='red', linestyle='--',linewidth=1,
+                      label='Air quality standard')
+        # ax.axvline(x=minMeanEmis, 
+        #            color='gray', linestyle='--',linewidth=1,
+        #                label='Average of significant emissions')
+    
+    ax.legend(loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    # order = [1,3,2,0,4]
+    # ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],
+    #           loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+   
+    q1.set_alpha(0.2)
+    q2.set_alpha(0.2)
+    q3.set_alpha(0.2)
+    q4.set_alpha(0.2)
+    
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_ylabel('Air quality\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=8)
+    ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
+        
+        # You can also use lh.set_sizes([50])
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLAQS_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+               bbox_inches='tight',dpi=300)
+    
+    # FIGURA SCATTER DOS QUADRANTES
+    fig, ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(12*cm, 12*cm)
+    q4 = ax.scatter(q4EMIS,q4BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+        
+    q1 = ax.scatter(q1EMIS,q1BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+    
+    q2 = ax.scatter(q3EMIS,q3BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+    
+    q3 = ax.scatter(q2EMIS,q2BRAIN,
+               s=.1,alpha=1,c='#71CCF1', label = None)
+    
+    # if pol['Criteria']!=None:
+    #     ax.axhline(y=pol['Criteria'], color='red', linestyle='--',linewidth=1,
+    #                   label='Air quality standard')
+    #     ax.axvline(x=minMeanEmis, 
+    #                color='gray', linestyle='--',linewidth=1,
+    #                    label='Average of significant emissions')
+    
+    #ax.legend(loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    order = [1,3,2,0]
+    # ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],
+    #           loc='lower left' ,fontsize=8, markerscale=15, frameon=False)
+
+    ax.annotate('ρ = {:.2f}'.format(corr),
+            xy=(0.67, 0.1), xycoords='axes fraction', 
+            fontsize=8, ha='left', va='center')
+    
+    q1.set_alpha(0.2)
+    q2.set_alpha(0.2)
+    q3.set_alpha(0.2)
+    q4.set_alpha(0.2)
+    
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_ylabel('Air quality\n'+pol['tag']+ ' ('+pol['Unit']+')',fontsize=8)
+    ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
+        
+        # You can also use lh.set_sizes([50])
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLraw_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
 def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol):
@@ -657,51 +767,153 @@ def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol):
 
 def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBox):
     # FIGURA ABATIMENTO DAS EMISSÕES NO Q4 - ETAPA 1
-    fig,ax = plt.subplots(2,1,gridspec_kw={'height_ratios': [5, 1],'wspace':0, 'hspace':0.4})
+    #fig,ax = plt.subplots(2,1,gridspec_kw={'height_ratios': [5, 1],'wspace':0, 'hspace':0.4})
+    fig,ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(16*cm, 12*cm)
+    fig.set_size_inches(10*cm, 10*cm)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#FDC45C','#FF7533','#E72C31',])
     
     bounds = np.array([0,1,5,10,30,60,90,95,99,100])
     norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
-    heatmap = ax[0].pcolor(lonBRAIN,latBRAIN,np.nanmean(q4EMISmatE1[:,0,:,:],axis=0),cmap='rainbow',norm=norm)
+    heatmap = ax.pcolor(lonBRAIN,latBRAIN,np.nanmean(q4EMISmatE1[:,0,:,:],axis=0),cmap='rainbow',norm=norm)
     cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02,
                         ticks=bounds,
                         #extend='both',
                         spacing='uniform',
                         orientation='horizontal',
                         norm=norm,
-                        ax=ax[0])
+                        ax=ax)
     cbar.ax.tick_params(rotation=30)
     cbar.ax.set_xlabel(polEmis+'\nRedução média da emissão (%)', rotation=0,fontsize=6)
     cbar.ax.get_xaxis().labelpad = 6
     cbar.ax.tick_params(labelsize=7) 
-    ax[0].set_xlim([lonBRAIN.min(), lonBRAIN.max()])
-    ax[0].set_ylim([latBRAIN.min(), latBRAIN.max()])
-    ax[0].set_xticks([])
-    ax[0].set_yticks([])
-    ax[0].set_frame_on(False)
+    ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
+    ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_frame_on(False)
     shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
-    dataShp.boundary.plot(ax=ax[0],edgecolor='black',linewidth=0.3)
+    dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
     
-    bplot1 = ax[1].boxplot(dataBox,
+    fig,ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(18*cm, 4*cm)
+    bplot1 = ax.boxplot(dataBox,
                notch=True,  # notch shape
                vert=True,  # vertical box alignment
                patch_artist=True,
-               flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': '#FF7400','alpha':0.5})
+               flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': 'white','alpha':0.5})
     ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax[1].tick_params(axis='both', which='major', labelsize=6)
-    ax[1].set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
+    ax.set_xticks(ticks, dataShp['UF'],fontsize=7)
+    ax.tick_params(axis='both', which='major', labelsize=6)
+    ax.set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
     
     # fill with colors
     colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
 
     for patch, color in zip(bplot1['boxes'], colors):
         patch.set_facecolor(color)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionSpatial_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionBox_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
+    return fig
+
+def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
+    fig, ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(18*cm, 13*cm)
+    #cmap = plt.get_cmap(cmap, 6)
+    bounds = np.array([np.nanpercentile(data[data>0],1),
+                       np.nanpercentile(data[data>0],5),
+                       np.nanpercentile(data[data>0],10),
+                        np.nanpercentile(data[data>0],25),
+                        np.nanpercentile(data[data>0],50),
+                        np.nanpercentile(data[data>0],75),
+                        np.nanpercentile(data[data>0],90),
+                        np.nanpercentile(data[data>0],95),
+                        np.nanpercentile(data[data>0],99),
+                        np.nanpercentile(data[data>0],100)])
+    norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
+    heatmap = ax.pcolor(xlon,ylat,data,cmap=cmap,norm=norm)
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,
+                        #extend='both',
+                        ticks=bounds,
+                        spacing='uniform',
+                        orientation='horizontal',
+                        norm=norm,
+                        ax=ax)
+
+    cbar.ax.tick_params(rotation=30)
+    #tick_locator = mpl.ticker.MaxNLocator(nbins=5)
+    #cbar.locator = tick_locator
+    #cbar.ax.set_xscale('log')
+    #cbar.update_ticks()
+    
+    cbar.ax.set_xlabel(legend, rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 2
+    cbar.ax.tick_params(labelsize=6)
+    #cbar.ax.locator_params(axis='both',nbins=5)
+    cbar.ax.minorticks_off()
+    #br = gpd.read_file(borderShape)
+    #br.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
+    borderShape.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
+    ax.set_xlim([xlon.min(), xlon.max()])
+    ax.set_ylim([ylat.min(), ylat.max()]) 
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_frame_on(False)
+    fig.tight_layout()
+    fig.savefig(folder+'/timeAverageFig_'+pol+'_'+aveTime+'.png',
+                format="png",bbox_inches='tight')
+    return fig
+
+
+def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
+    fig, ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    fig.set_size_inches(18*cm, 13*cm)
+    #cmap = plt.get_cmap(cmap, 4)
+    # cmap.set_under('white')
+    # cmap.set_over('red')
+    cmap.set_bad('white',1.)
+    #bounds = np.concatenate((np.array([0,1]),np.linspace(2, np.nanmax([np.nanmax(data),8]), 5,dtype=int)))
+    bounds = np.array([0,1,np.nanpercentile(data[data>0],1),
+                   np.nanpercentile(data[data>0],5),
+                   np.nanpercentile(data[data>0],10),
+                    np.nanpercentile(data[data>0],25),
+                    np.nanpercentile(data[data>0],50),
+                    np.nanpercentile(data[data>0],75),
+                    np.nanpercentile(data[data>0],90),
+                    np.nanpercentile(data[data>0],95),
+                    np.nanpercentile(data[data>0],99),
+                    np.nanpercentile(data[data>0],100)])
+    norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
+    #cmap.set_under('white')
+    heatmap = ax.pcolor(xlon,ylat,data,cmap=cmap,norm=norm)
+    #form = numFormat(data)
+    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,format="%.0f",
+                        #extend='both', 
+                        ticks=bounds,
+                        spacing='uniform',
+                        orientation='horizontal',
+                        norm=norm)
+    cbar.ax.set_xticklabels(['{:.0f}'.format(x) for x in bounds],rotation=30)
+    cbar.ax.set_xlabel(legend, rotation=0,fontsize=6)
+    cbar.ax.get_xaxis().labelpad = 5
+    cbar.ax.tick_params(labelsize=6)
+    #cbar.ax.locator_params(axis='both',nbins=5)
+    #br = gpd.read_file(borderShape)
+    #br.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
+    borderShape.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
+    ax.set_xlim([xlon.min(), xlon.max()])
+    ax.set_ylim([ylat.min(), ylat.max()]) 
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_frame_on(False)
+    
+    fig.tight_layout()
+    fig.savefig(folder+'/exceedanceFig_'+pol+'_'+aveTime+'.png', 
+                format="png",bbox_inches='tight')
     return fig
