@@ -797,6 +797,8 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBo
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
     dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionSpatial_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+               bbox_inches='tight',dpi=300)
     
     fig,ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches

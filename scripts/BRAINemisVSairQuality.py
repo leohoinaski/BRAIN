@@ -41,7 +41,7 @@ NO2 = {
   #"Criteria": 260, # 260, 240, 220, 200
   "Criteria_ave": 1,
   #"criterias" : [260,240,220,200],
-  "criterias" : [200],
+  "criterias" : [260],
   "Criteria_average": '1-h average',
 }
 
@@ -95,12 +95,13 @@ PM25 = {
   "conv": 1,
   "tag":'PM25',
   "Criteria_ave": 24,
-  "criterias" : [60,50,37,25,15],
+  #"criterias" : [60,50,37,25,15],
+  "criterias" : [15],
   "Criteria_average": '24-h average',
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[SO2]
+pollutants=[NO2]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 #------------------------------PROCESSING--------------------------------------

@@ -21,6 +21,7 @@ NO2 = {
   #"criterias" : [260,240,220,200],
   "criterias" : [200],
   "Criteria_average": '1-h average',
+  'emis':'NOX'
 }
 
 CO = {
@@ -42,6 +43,7 @@ O3 = {
   #"criterias" : [140,130,120,100],
   "criterias" : [100],
   "Criteria_average": '8-h average',
+  'emis':'NOX'
 }
 
 SO2 = {
@@ -53,6 +55,7 @@ SO2 = {
   #"criterias" : [125,50,40,30,20],
   "criterias" : [40],
   "Criteria_average": '24-h average',
+  'emis':'SOX'
   
 }
 
@@ -65,6 +68,7 @@ PM10 = {
   #"criterias" : [120,100,75,50,45],
   "criterias" : [45],
   "Criteria_average": '24-h average',
+  'emis':'PM10'
 }
 
 PM25 = {
@@ -75,6 +79,7 @@ PM25 = {
   "Criteria_ave": 24,
   "criterias" : [60,50,37,25,15],
   "Criteria_average": '24-h average',
+  'emis':'PM10'
 }
 
 BASE = os.getcwd()
@@ -83,7 +88,7 @@ tablesFolder = os.path.dirname(BASE)+'/tables'
 domain = 'BR'
 year = '2020'
 
-pollutants=[NO2,O3,PM10]
+pollutants=[PM25]
 
 
 for pol in pollutants:
@@ -141,7 +146,7 @@ for pol in pollutants:
     df_pivot.plot(kind="bar",ax=ax[2],cmap=cmap)
     #ax[2].set_yscale('symlog')
     ax[2].set_ylim([0,100])
-    ax[2].set_ylabel('Redução média\n'+pol['tag'],fontsize=8)
+    ax[2].set_ylabel('Redução média\n'+pol['emis'],fontsize=8)
     ax[2].get_legend().remove()
     ax[2].tick_params(axis='both', which='major', labelsize=7)
     fig.savefig(os.path.dirname(BASE)+'/figures'+'/criticalEvents_'+pol['tag']+'.png', format="png",
