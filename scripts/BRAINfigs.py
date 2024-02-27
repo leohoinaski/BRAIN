@@ -456,7 +456,7 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         return matData.shape
 
 
-def timeseriesSelection(BASE,datesTimeBRAIN,meanEvents,aveMeanEvents,pol):
+def timeseriesSelection(BASE,datesTimeBRAIN,meanEvents,aveMeanEvents,pol,domain):
     fig, ax = plt.subplots(1,2,gridspec_kw={'width_ratios': [6, 1],'wspace':0, 'hspace':0},
                            sharey=True)
     cm = 1/2.54  # centimeters in inches
@@ -478,7 +478,8 @@ def timeseriesSelection(BASE,datesTimeBRAIN,meanEvents,aveMeanEvents,pol):
     ax[1].set_xlabel('Events' ,fontsize=8)
     ax[1].yaxis.set_tick_params(labelsize=7)
     ax[1].xaxis.set_tick_params(labelsize=7)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesSelection_'+pol['tag']+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/timeSeriesSelection_'+domain+'_'+
+                str(pol['Criteria'])+'_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
     return fig
     # capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
@@ -519,7 +520,7 @@ def timeseriesSelection(BASE,datesTimeBRAIN,meanEvents,aveMeanEvents,pol):
     #                         xlon,ylat,None,
     #                         os.path.dirname(BASE)+'/figures/',pol['tag'],'MERRA2_'+str(IBGE_CODE))
     
-def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
+def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel,domain):
     fig,ax = plt.subplots(3,1,sharex=True,gridspec_kw={'wspace':0, 'hspace':0.05})
     nCriticos = []
     for ll in dataBox:
@@ -533,19 +534,36 @@ def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
                patch_artist=True,
                flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': 'white','alpha':0.5}
                )
-    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
-    #ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax[0].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
-    ax[0].tick_params(axis='both', which='major', labelsize=6)
-    ax[0].set_ylabel(polEmis+' emission\n'+'('+ds1[polEmis].units.split(' ')[0]+')',fontsize=8)
-    ax[0].set_yscale('symlog')
-    ax[0].set_ylim([0,np.max(nCriticos)])
-    cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(18*cm, 12*cm)
-    # fill with colors
-    #colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
-    colors = np.repeat(['#E72C31'],dataShp['NM_MESO'].shape[0])
+    try:
+        #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
+        #ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[0].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
+        ax[0].tick_params(axis='both', which='major', labelsize=6)
+        ax[0].set_ylabel(polEmis+' emission\n'+'('+ds1[polEmis].units.split(' ')[0]+')',fontsize=8)
+        ax[0].set_yscale('symlog')
+        ax[0].set_ylim([0,np.max(nCriticos)])
+        cm = 1/2.54  # centimeters in inches
+        fig.set_size_inches(18*cm, 12*cm)
+        # fill with colors
+        #colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+        colors = np.repeat(['#E72C31'],dataShp['NM_MESO'].shape[0])
+    except:
+        #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        #ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[0].tick_params(axis='both', which='major', labelsize=6)
+        ax[0].set_ylabel(polEmis+' emission\n'+'('+ds1[polEmis].units.split(' ')[0]+')',fontsize=8)
+        ax[0].set_yscale('symlog')
+        ax[0].set_ylim([0,np.max(nCriticos)])
+        cm = 1/2.54  # centimeters in inches
+        fig.set_size_inches(18*cm, 12*cm)
+        # fill with colors
+        #colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+        colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+    
+    
     for patch, color in zip(bplot1['boxes'], colors):
         patch.set_facecolor(color)
     for median in bplot1['medians']:
@@ -554,30 +572,47 @@ def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
     nCriticos = []
     for ll in dataBoxAQ:
         nCriticos.append(len(ll))
-    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
-    bplot1 = ax[1].bar(ticks,nCriticos,color='#E72C31')
-    #ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
-    ax[1].tick_params(axis='both', which='major', labelsize=6)
-    ax[1].set_ylabel('Exceeding events\n'+polEmis,fontsize=8)
-    ax[1].set_yscale('log')
-    
-    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
-    bplot1 = ax[2].bar(ticks,dataBoxPixel,color='#E72C31')
-    #ax[2].set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
+
+    try:
+        ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
+        bplot1 = ax[1].bar(ticks,nCriticos,color='#E72C31')
+        #ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
+        ax[1].tick_params(axis='both', which='major', labelsize=6)
+        ax[1].set_ylabel('Exceeding events\n'+polEmis,fontsize=8)
+        ax[1].set_yscale('log')
+        
+        #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
+        bplot1 = ax[2].bar(ticks,dataBoxPixel,color='#E72C31')
+        #ax[2].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
+    except:
+        ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        bplot1 = ax[1].bar(ticks,nCriticos,color='#E72C31')
+        #ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[1].tick_params(axis='both', which='major', labelsize=6)
+        ax[1].set_ylabel('Exceeding events\n'+polEmis,fontsize=8)
+        ax[1].set_yscale('log')
+        
+        #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        bplot1 = ax[2].bar(ticks,dataBoxPixel,color='#E72C31')
+        #ax[2].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+        
     ax[2].tick_params(axis='both', which='major', labelsize=6)
     ax[2].set_ylabel('Exceeding pixels\n'+polEmis,fontsize=8)
     ax[2].set_yscale('log')
     
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/boxplotViolateEmissions_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/boxplotViolateEmissions_'+
+                pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     return fig
 
 def Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
-             pol,polEmis,minMeanEmis):
+             pol,polEmis,minMeanEmis,domain):
     # FIGURA SCATTER DOS QUADRANTES
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
@@ -619,11 +654,11 @@ def Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
     ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
         
         # You can also use lh.set_sizes([50])
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQ_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
 def QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
-             pol,polEmis,minMeanEmis,dataBRAIN,dataEMIS):
+             pol,polEmis,minMeanEmis,dataBRAIN,dataEMIS,domain):
     
     ###calculate Spearman correlation using new_df
     try:
@@ -680,7 +715,7 @@ def QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN
     ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
         
         # You can also use lh.set_sizes([50])
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLAQS_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLAQS_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
     # FIGURA SCATTER DOS QUADRANTES
@@ -727,12 +762,19 @@ def QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN
     ax.set_xlabel('Emission\n'+polEmis ,fontsize=8)
         
         # You can also use lh.set_sizes([50])
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLraw_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/scatterQALLraw_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
-def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol):
+def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol,
+             dataShp,domain):
     # Figure frequencia no Q4 - QUADRANTES NO ESPAÇO
     fig,ax = plt.subplots()
+    cm = 1/2.54  # centimeters in inches
+    if domain=='SC':
+        fig.set_size_inches(20*cm, 10*cm)
+    else:
+        fig.set_size_inches(10*cm, 10*cm)
+    
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [[0,0,0,0],'#71CCF1','#71CCF1'])
     heatmap = ax.pcolor(lonBRAIN,latBRAIN,freQ1[0,:,:],cmap=cmap)
     #heatmap = ax.pcolor(lonBRAIN,latBRAIN,q1EMISmat[0,0,:,:].data,cmap=cmap)
@@ -761,23 +803,27 @@ def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol):
     ax.set_xticks([])
     ax.set_yticks([])
     
-    shape_path= rootFolder+'/shapefiles/Brasil.shp'
+    #shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
-    dataShp = gpd.read_file(shape_path)
+    #dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
     ax.set_frame_on(False)
     del heatmap
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/spatialQ_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/spatialQ_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     return fig
 
-def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBox):
+def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,
+                dataBox,dataShp,domain):
     # FIGURA ABATIMENTO DAS EMISSÕES NO Q4 - ETAPA 1
     #fig,ax = plt.subplots(2,1,gridspec_kw={'height_ratios': [5, 1],'wspace':0, 'hspace':0.4})
     fig,ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(10*cm, 10*cm)
+    if domain=='SC':
+        fig.set_size_inches(20*cm, 10*cm)
+    else:
+        fig.set_size_inches(10*cm, 10*cm)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white','#FDC45C','#FF7533','#E72C31',])
     
     bounds = np.array([0,1,5,10,30,60,90,95,99,100])
@@ -799,12 +845,12 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBo
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_frame_on(False)
-    shape_path= rootFolder+'/shapefiles/Brasil.shp'
+    #shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
-    dataShp = gpd.read_file(shape_path)
+    #dataShp = gpd.read_file(shape_path)
     dataShp.boundary.plot(ax=ax,edgecolor='black',linewidth=0.3)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionSpatial_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionSpatial_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     
     fig,ax = plt.subplots()
@@ -815,24 +861,36 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBo
                vert=True,  # vertical box alignment
                patch_artist=True,
                flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': 'white','alpha':0.5})
-    ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ax.set_xticks(ticks, dataShp['UF'],fontsize=7)
-    ax.tick_params(axis='both', which='major', labelsize=6)
-    ax.set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
-    
-    # fill with colors
-    colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+    try:
+        ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+        ax.set_xticks(ticks, dataShp['UF'],fontsize=7)
+        ax.tick_params(axis='both', which='major', labelsize=6)
+        ax.set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
+        
+        # fill with colors
+        colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+    except:
+        ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
+        ax.set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
+        ax.tick_params(axis='both', which='major', labelsize=6)
+        ax.set_ylabel(polEmis+'\nRedução emissão \n(%)' ,fontsize=8)
+        
+        # fill with colors
+        colors = np.repeat(['#E72C31'],dataShp['NM_MESO'].shape[0])
 
     for patch, color in zip(bplot1['boxes'], colors):
         patch.set_facecolor(color)
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionBox_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/ReductionBox_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.png', format="png",
                bbox_inches='tight',dpi=300)
     return fig
 
-def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
+def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,domain):
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(18*cm, 13*cm)
+    if domain=='SC':
+        fig.set_size_inches(20*cm, 10*cm)
+    else:
+        fig.set_size_inches(18*cm, 13*cm)
     #cmap = plt.get_cmap(cmap, 6)
     bounds = np.array([np.nanpercentile(data[data>0],1),
                        np.nanpercentile(data[data>0],5),
@@ -874,15 +932,19 @@ def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
     ax.set_yticks([])
     ax.set_frame_on(False)
     fig.tight_layout()
-    fig.savefig(folder+'/timeAverageFig_'+pol+'_'+aveTime+'.png',
+    fig.savefig(folder+'/timeAverageFig_'+domain+'_'+pol+'_'+aveTime+'.png',
                 format="png",bbox_inches='tight')
     return fig
 
 
-def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
+def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
+                  domain, criteria):
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(18*cm, 13*cm)
+    if domain=='SC':
+        fig.set_size_inches(20*cm, 10*cm)
+    else:
+        fig.set_size_inches(18*cm, 13*cm)
     #cmap = plt.get_cmap(cmap, 4)
     # cmap.set_under('white')
     # cmap.set_over('red')
@@ -923,6 +985,6 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime):
     ax.set_frame_on(False)
     
     fig.tight_layout()
-    fig.savefig(folder+'/exceedanceFig_'+pol+'_'+aveTime+'.png', 
+    fig.savefig(folder+'/exceedanceFig_'+domain+'_'+str(criteria)+'_'+pol+'_'+aveTime+'.png', 
                 format="png",bbox_inches='tight')
     return fig
