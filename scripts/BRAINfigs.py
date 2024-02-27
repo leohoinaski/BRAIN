@@ -829,7 +829,7 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,
     bounds = np.array([0,1,5,10,30,60,90,95,99,100])
     norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     heatmap = ax.pcolor(lonBRAIN,latBRAIN,np.nanmean(q4EMISmatE1[:,0,:,:],axis=0),cmap='rainbow',norm=norm)
-    cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02,
+    cbar = fig.colorbar(heatmap,fraction=0.02, pad=0.02,
                         ticks=bounds,
                         #extend='both',
                         spacing='uniform',
@@ -964,7 +964,7 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
     #cmap.set_under('white')
     heatmap = ax.pcolor(xlon,ylat,data,cmap=cmap,norm=norm)
     #form = numFormat(data)
-    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,format="%.0f",
+    cbar = fig.colorbar(heatmap,fraction=0.02, pad=0.02,format="%.0f",
                         #extend='both', 
                         ticks=bounds,
                         spacing='uniform',
