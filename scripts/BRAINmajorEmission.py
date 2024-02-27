@@ -82,7 +82,7 @@ rootFolder = os.path.dirname(os.path.dirname(BASE))
 dataFolder = os.path.dirname(BASE)+'/data'
 airQualityFolder =  dataFolder+'/BRAIN'
 emissFolder =  dataFolder+'/EMIS'
-domain = 'BR'
+domain = 'SC'
 year = '2020'
 majorEmitters=[]
 majorEmittersAve=[]
@@ -130,8 +130,10 @@ for kk,pol in enumerate(pollutants):
  
     #% Removendo dados fora do Brasil
     
-    shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    #shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    shape_path= rootFolder+'/shapefiles/Brasil.shp'
     dataShp = gpd.read_file(shape_path)
+
     
     def dataINshape(xlon,ylat,uf):
         s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
@@ -139,7 +141,7 @@ for kk,pol in enumerate(pollutants):
         s.crs = "EPSG:4326"
         s.to_crs("EPSG:4326")
         uf.crs = "EPSG:4326"
-        pointIn = uf['geometry'].buffer(0.1).clip(s).explode()
+        pointIn = uf['geometry'].buffer(0.01).clip(s).explode()
         pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
         lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
                             np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')
@@ -148,7 +150,8 @@ for kk,pol in enumerate(pollutants):
         cityMat = np.reshape(np.array(s['mask']),(xlon.shape[0],xlon.shape[1]))
         return s,cityMat
     
-    uf = dataShp[dataShp['NM_PAIS']=='Brasil']
+    #uf = dataShp[dataShp['NM_PAIS']=='Brasil']
+    uf = dataShp[dataShp['UF']=='SC']
     s,cityMat=dataINshape(lonBRAIN,latBRAIN,uf)
     
     print('Removing emissions outsitde domain')
@@ -176,7 +179,10 @@ for kk,pol in enumerate(pollutants):
     shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    #dataShp = gpd.read_file(shape_path)
+    shape_path= rootFolder+'/shapefiles/SC_Mesorregioes_2022/SC_Mesorregioes_2022.shp'
     dataShp = gpd.read_file(shape_path)
+    #dataShp= uf.copy()
     xb = [np.nanmin(lonBRAIN[~np.isnan(majorEmitter)[:,:]]),
           np.nanmax(lonBRAIN[~np.isnan(majorEmitter)[:,:]])]
     yb = [np.nanmin(latBRAIN[~np.isnan(majorEmitter)[:,:]]),
@@ -200,7 +206,7 @@ for kk,pol in enumerate(pollutants):
     ax[0,0].set_yticks([])    
     dataShp.boundary.plot(ax=ax[0,0],edgecolor='black',linewidth=0.3)
     ax[0,0].set_frame_on(False)
-    ax[0,0].text(0.0, 0.35, 'a) Average'+'\n'+polEmis+' major emitters', transform=ax[0,0].transAxes,
+    ax[0,0].text(0.0, 0.45, 'a) Average'+'\n'+polEmis+' major emitters', transform=ax[0,0].transAxes,
             size=7)
     
     heatmap = ax[0,1].pcolor(lonBRAIN,latBRAIN,majorEmitter,
@@ -211,33 +217,41 @@ for kk,pol in enumerate(pollutants):
     ax[0,1].set_yticks([])    
     dataShp.boundary.plot(ax=ax[0,1],edgecolor='black',linewidth=0.3)
     ax[0,1].set_frame_on(False)
-    ax[0,1].text(0.0, 0.35, 'b) 99° percentile'+'\n'+polEmis+' major emitters', transform=ax[0,1].transAxes,
+    ax[0,1].text(0.0, 0.45, 'b) 99° percentile'+'\n'+polEmis+' major emitters', transform=ax[0,1].transAxes,
             size=7)
     #fig.tight_layout()
 
     
     
     # Por estado
-    shape_path= rootFolder+'/shapefiles/Brasil.shp'
+    #shape_path= rootFolder+'/shapefiles/Brasil.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+    shape_path= rootFolder+'/shapefiles/SC_Mesorregioes_2022/SC_Mesorregioes_2022.shp'
+
     dataShp = gpd.read_file(shape_path)
     
     dataBox=[]
     dataBoxAve=[]
     
     dfMajor=pd.DataFrame()
-    dfMajor['state'] = dataShp['UF']
-    dfMajor['region'] = dataShp['REGIAO']
+    # dfMajor['state'] = dataShp['UF']
+    # dfMajor['region'] = dataShp['REGIAO']
+    dfMajor['state'] = dataShp['NM_MESO']
+    dfMajor['region'] = dataShp['NM_MESO']
     dfMajorAve=pd.DataFrame()
-    dfMajorAve['state'] = dataShp['UF']
-    dfMajorAve['region'] = dataShp['REGIAO']
+    #dfMajorAve['state'] = dataShp['UF']
+    #dfMajorAve['region'] = dataShp['REGIAO']
+    dfMajorAve['state'] = dataShp['NM_MESO']
+    dfMajorAve['region'] = dataShp['NM_MESO']
     for kk, source in enumerate(emisNamesUpdated):
         dfMajor[source] = np.nan
         dfMajorAve[source] = np.nan
         
-    for jj,state in enumerate(dataShp['UF']):
-        uf = dataShp[dataShp['UF']==state]
+    #for jj,state in enumerate(dataShp['UF']):
+    for jj,state in enumerate(dataShp['NM_MESO']):
+        #uf = dataShp[dataShp['UF']==state]
+        uf = dataShp[dataShp['NM_MESO']==state]
         s,cityMat=dataINshape(lonBRAIN,latBRAIN,uf)
         dataBox.append(majorEmitter[cityMat==1][~np.isnan(majorEmitter[cityMat==1])])
         dataBoxAve.append(majorEmitter[cityMat==1][~np.isnan(majorEmitterAve[cityMat==1])])
@@ -266,7 +280,7 @@ for kk,pol in enumerate(pollutants):
     
     dfMajorAve[emisNamesUpdated].plot.bar(stacked=True,color=updatedColors,ax=ax[1,0])
     ax[1,0].yaxis.set_major_formatter(mtick.PercentFormatter())    
-    ax[1,0].set_xticks(np.array(dfMajorAve['state'].index), dfMajorAve['state'],fontsize=7)
+    ax[1,0].set_xticks(np.array(dfMajorAve['state'].index), dfMajorAve['state'].str.replace(' ','\n'),fontsize=7)
     ax[1,0].set_ylim([0,100])
     ax[1,0].tick_params(axis='both', which='major', labelsize=6)
     ax[1,0].set_ylabel('c) Average \n'+polEmis+' Major source (%)' ,fontsize=8)
@@ -278,7 +292,7 @@ for kk,pol in enumerate(pollutants):
     
     dfMajor[emisNamesUpdated].plot.bar(stacked=True,color=updatedColors,ax=ax[1,1])
     ax[1,1].yaxis.set_major_formatter(mtick.PercentFormatter())    
-    ax[1,1].set_xticks(np.array(dfMajor['state'].index), dfMajor['state'],fontsize=7)
+    ax[1,1].set_xticks(np.array(dfMajor['state'].index), dfMajor['state'].str.replace(' ','\n'),fontsize=7)
     ax[1,1].set_ylim([0,100])
     ax[1,1].tick_params(axis='both', which='major', labelsize=6)
     ax[1,1].set_ylabel('d) 99° percentile'+'\n'+polEmis+ ' Major source (%)' ,fontsize=8)
@@ -287,6 +301,6 @@ for kk,pol in enumerate(pollutants):
     ax[1,1].get_legend().remove()
     fig.subplots_adjust(hspace=0)
     fig.tight_layout()
-    fig.savefig(os.path.dirname(BASE)+'/figures'+'/majorEmitters_'+polEmis+'.png', format="png",
+    fig.savefig(os.path.dirname(BASE)+'/figures'+'/majorEmitters_'+domain+'_'+polEmis+'.png', format="png",
               bbox_inches='tight',dpi=300)
     

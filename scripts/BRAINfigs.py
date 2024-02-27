@@ -533,8 +533,10 @@ def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
                patch_artist=True,
                flierprops={'marker': 'o', 'markersize': 3, 'markerfacecolor': 'white','alpha':0.5}
                )
-    ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
-    ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
+    #ax[0].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    ax[0].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
     ax[0].tick_params(axis='both', which='major', labelsize=6)
     ax[0].set_ylabel(polEmis+' emission\n'+'('+ds1[polEmis].units.split(' ')[0]+')',fontsize=8)
     ax[0].set_yscale('symlog')
@@ -542,7 +544,8 @@ def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
     cm = 1/2.54  # centimeters in inches
     fig.set_size_inches(18*cm, 12*cm)
     # fill with colors
-    colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+    #colors = np.repeat(['#E72C31'],dataShp['UF'].shape[0])
+    colors = np.repeat(['#E72C31'],dataShp['NM_MESO'].shape[0])
     for patch, color in zip(bplot1['boxes'], colors):
         patch.set_facecolor(color)
     for median in bplot1['medians']:
@@ -551,16 +554,20 @@ def exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel):
     nCriticos = []
     for ll in dataBoxAQ:
         nCriticos.append(len(ll))
-    ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
     bplot1 = ax[1].bar(ticks,nCriticos,color='#E72C31')
-    ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    #ax[1].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
     ax[1].tick_params(axis='both', which='major', labelsize=6)
     ax[1].set_ylabel('Exceeding events\n'+polEmis,fontsize=8)
     ax[1].set_yscale('log')
     
-    ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+    #ticks = [i+1 for i, v in enumerate(dataShp['UF'])]
+    ticks = [i+1 for i, v in enumerate(dataShp['NM_MESO'])]
     bplot1 = ax[2].bar(ticks,dataBoxPixel,color='#E72C31')
-    ax[2].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    #ax[2].set_xticks(ticks, dataShp['UF'],fontsize=7)
+    ax[1].set_xticks(ticks, dataShp['NM_MESO'],fontsize=7)
     ax[2].tick_params(axis='both', which='major', labelsize=6)
     ax[2].set_ylabel('Exceeding pixels\n'+polEmis,fontsize=8)
     ax[2].set_yscale('log')

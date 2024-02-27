@@ -43,15 +43,17 @@ def datePrepBRAIN(ds):
 def fixTimeBRAIN(ds,data):
     dd = datePrepBRAIN(ds)
     idx2Remove = np.array(dd.drop_duplicates().index)
-    data = data[idx2Remove]
+    data = data[idx2Remove[0:data.shape[0]]]
     datesTime = dd.drop_duplicates().reset_index(drop=True)
+    datesTime=datesTime[0:data.shape[0]]
     return datesTime,data
 
 def fixTimeBRAINemis(ds,data):
     dd = datePrepBRAINemis(ds)
     idx2Remove = np.array(dd.drop_duplicates().index)
-    data = data[idx2Remove]
+    data = data[idx2Remove[0:data.shape[0]]]
     datesTime = dd.drop_duplicates().reset_index(drop=True)
+    datesTime=datesTime[0:data.shape[0]]
     return datesTime,data
 
 def datePrepBRAINemis(ds):
@@ -103,7 +105,7 @@ def dataINshape(xlon,ylat,uf):
     s.crs = "EPSG:4326"
     s.to_crs("EPSG:4326")
     uf.crs = "EPSG:4326"
-    pointIn = uf['geometry'].buffer(0.1).clip(s).explode()
+    pointIn = uf['geometry'].buffer(0.01).clip(s).explode()
     pointIn = gpd.GeoDataFrame({'geometry':pointIn}).reset_index()
     lia, loc = ismember.ismember(np.array((s.geometry.x,s.geometry.y)).transpose(),
                         np.array((pointIn.geometry.x,pointIn.geometry.y)).transpose(),'rows')

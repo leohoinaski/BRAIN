@@ -110,16 +110,19 @@ rootFolder = os.path.dirname(os.path.dirname(BASE))
 dataFolder = os.path.dirname(BASE)+'/data'
 airQualityFolder =  dataFolder+'/BRAIN'
 emissFolder =  dataFolder+'/EMIS'
-domain = 'BR'
+domain = 'SC'
 year = '2020'
 
-shape_pathBR= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+#shape_pathBR= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+shape_pathBR= rootFolder+'/shapefiles/Brasil.shp'
 dataShpBR = gpd.read_file(shape_pathBR)
-br = dataShpBR[dataShpBR['NM_PAIS']=='Brasil']
+#br = dataShpBR[dataShpBR['NM_PAIS']=='Brasil']
+br = dataShpBR[dataShpBR['UF']=='SC']
 
-shape_path= rootFolder+'/shapefiles/Brasil.shp'
+#shape_path= rootFolder+'/shapefiles/Brasil.shp'
 #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
 #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
+shape_path= rootFolder+'/shapefiles/SC_Mesorregioes_2022/SC_Mesorregioes_2022.shp'
 dataShp = gpd.read_file(shape_path)
         
 print('Looping for each variable')
@@ -152,12 +155,12 @@ for kk,pol in enumerate(pollutants):
             if len(prefixed)>0:
                 ds1 = nc.Dataset(prefixed[0])
                 if ii==0:
-                    dataEMIS = ds1[polEmis][0:8759,:,:,:]
+                    dataEMIS = ds1[polEmis][0:8710,:,:,:]
                 else:
-                    dataEMIS = dataEMIS+ds1[polEmis][0:8759,:,:,:]
+                    dataEMIS = dataEMIS+ds1[polEmis][0:8710,:,:,:]
                     
         os.chdir(os.path.dirname(BASE))
-        datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds1,dataEMIS[0:8759,:,:,:])
+        datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds1,dataEMIS[0:8710,:,:,:])
         
        
         # ========BRAIN files============
@@ -169,7 +172,7 @@ for kk,pol in enumerate(pollutants):
         prefixed = sorted([filename for filename in os.listdir(airQualityFolder) if filename.startswith(fileType)])
         ds = nc.Dataset(prefixed[0])
         # Selecting variable
-        dataBRAIN = ds[pol['tag']][:]
+        dataBRAIN = ds[pol['tag']][0:8710]
         # Get datesTime and removing duplicates
         datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
         latBRAIN = ds['LAT'][:]
@@ -181,6 +184,8 @@ for kk,pol in enumerate(pollutants):
         lia, loc = ismember.ismember(datesTimeEMIS['datetime'].astype(str), datesTimeBRAIN['datetime'].astype(str))
         dataBRAIN = dataBRAIN[loc,:,:,:]
         datesTimeBRAIN = datesTimeBRAIN.iloc[loc,:]
+        dataEMIS=dataEMIS[lia,:,:,:]
+        datesTimeEMIS = datesTimeEMIS.iloc[lia,:]
         
         # Converting averaging time
         if pol['Criteria_ave']==1:
@@ -262,14 +267,15 @@ for kk,pol in enumerate(pollutants):
         violDf['lon'] =  np.repeat(lonBRAIN[:,:,np.newaxis],dataBRAIN.shape[0],axis=2)[:,:,boolEvents].flatten()[dataBRAIN[boolEvents,:,:,:].flatten()*pol['conv']>pol['Criteria']] 
         violDf['Emission'] = violEmis
         violDf['AirQ'] = violAirQ*pol['conv']
-        violDf.to_csv(os.path.dirname(BASE)+'/tables'+'/boxplotViolateEmissions_'+pol['tag']+'_'+str(pol['Criteria'])+'.csv')
+        violDf.to_csv(os.path.dirname(BASE)+'/tables'+'/boxplotViolateEmissions_'+domain+'_'+pol['tag']+'_'+str(pol['Criteria'])+'.csv')
                      
         # Por estado
         dataBox=[]
         dataBoxAQ=[]
         dataBoxPixel=[]
         statDf = pd.DataFrame()
-        statDf['UF']=dataShp['UF']
+        #statDf['UF']=dataShp['UF']
+        statDf['UF']=dataShp['NM_MESO']
         statDf['MAXEMIS'] = np.nan
         statDf['AVEEMIS'] = np.nan
         statDf['NcriticalEvents'] = np.nan
@@ -277,8 +283,10 @@ for kk,pol in enumerate(pollutants):
         statDf['AveReduction'] = np.nan
         statDf['MaxReduction'] = np.nan
         
-        for ii,state in enumerate(dataShp['UF']):
-            uf = dataShp[dataShp['UF']==state]
+        # for ii,state in enumerate(dataShp['UF']):
+        #     uf = dataShp[dataShp['UF']==state]
+        for ii,state in enumerate(dataShp['NM_MESO']):
+            uf = dataShp[dataShp['NM_MESO']==state]
             sUF,cityMatUF=BRAINutils.dataINshape(lonBRAIN,latBRAIN,uf)
             dataEMISuf = dataEMIS[boolEvents,:,:,:].copy()
             dataBRAINuf = dataBRAIN[boolEvents,:,:,:].copy()
@@ -357,7 +365,7 @@ for kk,pol in enumerate(pollutants):
         q4EMISmat2[~((dataBRAIN[boolEvents,:,:,:]*pol['conv']>pol['Criteria']) & (dataEMIS[boolEvents,:,:,:]>minMeanEmis))]=np.nan
         q4EMISmatE1 = ((q4EMISmat2-minMeanEmis)/q4EMISmat2)*100
         
-        with open(os.path.dirname(BASE)+'/tables'+'/Q4_'+pol['tag']+'_'+str(pol['Criteria'])+'.npy', 'wb') as f:
+        with open(os.path.dirname(BASE)+'/tables'+'/Q4_'+pol['tag']+'_'+domain+'_'+str(pol['Criteria'])+'.npy', 'wb') as f:
             np.save(f, np.sum(freQ4,axis=0).data)
             np.save(f, q4BRAINmat2.data)
             np.save(f, q4EMISmat2.data)
@@ -380,9 +388,21 @@ for kk,pol in enumerate(pollutants):
         
         # ESTATÍSTICAS Q4 - ETAPA1
         # Por estado
+        # dataBoxPercentage=[]
+        # for ii,state in enumerate(dataShp['UF']):
+        #     uf = dataShp[dataShp['UF']==state]
+        #     s,cityMatUF=BRAINutils.dataINshape(lonBRAIN,latBRAIN,uf)
+        #     dataBoxPercentage.append(q4EMISmatE1[:,0:,cityMatUF==1][~np.isnan(q4EMISmatE1[:,0:,cityMatUF==1])])
+        #     try:
+        #         statDf['AveReduction'][ii] = np.percentile(q4EMISmatE1[:,0:,cityMatUF==1][~np.isnan(q4EMISmatE1[:,0:,cityMatUF==1])],50)
+        #         statDf['MaxReduction'][ii] = np.nanmax(q4EMISmatE1[:,0:,cityMatUF==1][~np.isnan(q4EMISmatE1[:,0:,cityMatUF==1])])
+        #     except:
+        #         statDf['AveReduction'][ii] = 0
+        #         statDf['MaxReduction'][ii] = 0
+                
         dataBoxPercentage=[]
-        for ii,state in enumerate(dataShp['UF']):
-            uf = dataShp[dataShp['UF']==state]
+        for ii,state in enumerate(dataShp['NM_MESO']):
+            uf = dataShp[dataShp['NM_MESO']==state]
             s,cityMatUF=BRAINutils.dataINshape(lonBRAIN,latBRAIN,uf)
             dataBoxPercentage.append(q4EMISmatE1[:,0:,cityMatUF==1][~np.isnan(q4EMISmatE1[:,0:,cityMatUF==1])])
             try:
@@ -392,7 +412,7 @@ for kk,pol in enumerate(pollutants):
                 statDf['AveReduction'][ii] = 0
                 statDf['MaxReduction'][ii] = 0
                 
-        statDf.to_csv(os.path.dirname(BASE)+'/tables'+'/statistics_'+pol['tag']+'_'+str(pol['Criteria'])+'.csv')
+        statDf.to_csv(os.path.dirname(BASE)+'/tables'+'/statistics_'+pol['tag']+'_'+domain+'_'+str(pol['Criteria'])+'.csv')
         
         # Figura redução no Q4
         BRAINfigs.reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,dataBoxPercentage)
