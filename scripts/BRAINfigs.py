@@ -798,8 +798,8 @@ def Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,pol,
                         # ax=ax)
     
     #cbar.ax.tick_params(rotation=30)
-    ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
-    ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
+    ax.set_xlim([np.nanmin(lonBRAIN), np.nanmax(lonBRAIN)])
+    ax.set_ylim([np.nanmin(latBRAIN), np.nanmax(latBRAIN)]) 
     ax.set_xticks([])
     ax.set_yticks([])
     
@@ -829,7 +829,7 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,
     bounds = np.array([0,1,5,10,30,60,90,95,99,100])
     norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     heatmap = ax.pcolor(lonBRAIN,latBRAIN,np.nanmean(q4EMISmatE1[:,0,:,:],axis=0),cmap='rainbow',norm=norm)
-    cbar = fig.colorbar(heatmap,fraction=0.02, pad=0.02,
+    cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02,shrink=0.5,
                         ticks=bounds,
                         #extend='both',
                         spacing='uniform',
@@ -840,8 +840,8 @@ def reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,pol,
     cbar.ax.set_xlabel(polEmis+'\nRedução média da emissão (%)', rotation=0,fontsize=6)
     cbar.ax.get_xaxis().labelpad = 6
     cbar.ax.tick_params(labelsize=7) 
-    ax.set_xlim([lonBRAIN.min(), lonBRAIN.max()])
-    ax.set_ylim([latBRAIN.min(), latBRAIN.max()])
+    ax.set_xlim([np.nanmin(lonBRAIN), np.nanmax(lonBRAIN)])
+    ax.set_ylim([np.nanmin(latBRAIN), np.nanmax(latBRAIN)]) 
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_frame_on(False)
@@ -888,11 +888,11 @@ def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,dom
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
     if domain=='SC':
-        fig.set_size_inches(20*cm, 10*cm)
+        fig.set_size_inches(20*cm, 14*cm)
     else:
         fig.set_size_inches(18*cm, 13*cm)
     #cmap = plt.get_cmap(cmap, 6)
-    bounds = np.array([np.nanpercentile(data[data>0],1),
+    bounds = np.sort(np.unique(np.array([np.nanpercentile(data[data>0],1),
                        np.nanpercentile(data[data>0],5),
                        np.nanpercentile(data[data>0],10),
                         np.nanpercentile(data[data>0],25),
@@ -901,10 +901,10 @@ def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,dom
                         np.nanpercentile(data[data>0],90),
                         np.nanpercentile(data[data>0],95),
                         np.nanpercentile(data[data>0],99),
-                        np.nanpercentile(data[data>0],100)])
+                        np.nanpercentile(data[data>0],100)])))
     norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     heatmap = ax.pcolor(xlon,ylat,data,cmap=cmap,norm=norm)
-    cbar = fig.colorbar(heatmap,fraction=0.04, pad=0.02,
+    cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02, shrink=0.5,
                         #extend='both',
                         ticks=bounds,
                         spacing='uniform',
@@ -926,8 +926,8 @@ def timeAverageFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,dom
     #br = gpd.read_file(borderShape)
     #br.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
     borderShape.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
-    ax.set_xlim([xlon.min(), xlon.max()])
-    ax.set_ylim([ylat.min(), ylat.max()]) 
+    ax.set_xlim([np.nanmin(xlon), np.nanmax(xlon)])
+    ax.set_ylim([np.nanmin(ylat), np.nanmax(ylat)]) 
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_frame_on(False)
@@ -942,7 +942,7 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
     if domain=='SC':
-        fig.set_size_inches(20*cm, 10*cm)
+        fig.set_size_inches(20*cm, 14*cm)
     else:
         fig.set_size_inches(18*cm, 13*cm)
     #cmap = plt.get_cmap(cmap, 4)
@@ -950,7 +950,7 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
     # cmap.set_over('red')
     cmap.set_bad('white',1.)
     #bounds = np.concatenate((np.array([0,1]),np.linspace(2, np.nanmax([np.nanmax(data),8]), 5,dtype=int)))
-    bounds = np.array([0,1,np.nanpercentile(data[data>0],1),
+    bounds = np.sort(np.unique(np.array([0,1,np.nanpercentile(data[data>0],1),
                    np.nanpercentile(data[data>0],5),
                    np.nanpercentile(data[data>0],10),
                     np.nanpercentile(data[data>0],25),
@@ -959,12 +959,12 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
                     np.nanpercentile(data[data>0],90),
                     np.nanpercentile(data[data>0],95),
                     np.nanpercentile(data[data>0],99),
-                    np.nanpercentile(data[data>0],100)])
+                    np.nanpercentile(data[data>0],100)])))
     norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     #cmap.set_under('white')
     heatmap = ax.pcolor(xlon,ylat,data,cmap=cmap,norm=norm)
     #form = numFormat(data)
-    cbar = fig.colorbar(heatmap,fraction=0.02, pad=0.02,format="%.0f",
+    cbar = fig.colorbar(heatmap,fraction=0.03, pad=0.02,format="%.0f",shrink=0.5,
                         #extend='both', 
                         ticks=bounds,
                         spacing='uniform',
@@ -978,12 +978,11 @@ def exceedanceFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,aveTime,
     #br = gpd.read_file(borderShape)
     #br.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
     borderShape.boundary.plot(edgecolor='black',linewidth=0.5,ax=ax)
-    ax.set_xlim([xlon.min(), xlon.max()])
-    ax.set_ylim([ylat.min(), ylat.max()]) 
+    ax.set_xlim([np.nanmin(xlon), np.nanmax(xlon)])
+    ax.set_ylim([np.nanmin(ylat), np.nanmax(ylat)]) 
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_frame_on(False)
-    
     fig.tight_layout()
     fig.savefig(folder+'/exceedanceFig_'+domain+'_'+str(criteria)+'_'+pol+'_'+aveTime+'.png', 
                 format="png",bbox_inches='tight')

@@ -85,19 +85,19 @@ PM25 = {
 BASE = os.getcwd()
 rootFolder = os.path.dirname(os.path.dirname(BASE))
 tablesFolder = os.path.dirname(BASE)+'/tables'
-domain = 'BR'
+domain = 'SC'
 year = '2020'
 
-pollutants=[PM25]
+pollutants=[PM10,NO2,O3,PM25]
 
 
 for pol in pollutants:
-    fileType='statistics_'+pol['tag']
+    fileType='statistics_'+domain+'_'+pol['tag']
     prefixed = sorted([filename for filename in os.listdir(tablesFolder) if filename.startswith(fileType)])
     dfAll=[]
     for prf in prefixed:
         df = pd.read_csv(tablesFolder+'/'+prf)
-        df['standard'] = int(prf.split('_')[2].split('.')[0])
+        df['standard'] = int(prf.split('_')[-1].split('.')[0])
         dfAll.append(df)
     dfAll = pd.concat(dfAll)
     dfAll.sort_values(by="standard", inplace=True,ascending=True)
@@ -149,6 +149,10 @@ for pol in pollutants:
     ax[2].set_ylabel('Redução média\n'+pol['emis'],fontsize=8)
     ax[2].get_legend().remove()
     ax[2].tick_params(axis='both', which='major', labelsize=7)
+    
+    labels = [item.get_text() for item in ax[2].get_xticklabels()]
+    labels = [w.replace(' ', '\n') for w in labels]
+    ax[2].set_xticklabels(labels)
     fig.savefig(os.path.dirname(BASE)+'/figures'+'/criticalEvents_'+pol['tag']+'.png', format="png",
                bbox_inches='tight',dpi=300)
 

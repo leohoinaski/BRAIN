@@ -43,17 +43,17 @@ def datePrepBRAIN(ds):
 def fixTimeBRAIN(ds,data):
     dd = datePrepBRAIN(ds)
     idx2Remove = np.array(dd.drop_duplicates().index)
-    data = data[idx2Remove[0:data.shape[0]]]
+    data = data[idx2Remove[0:(data.shape[0])]]
     datesTime = dd.drop_duplicates().reset_index(drop=True)
-    datesTime=datesTime[0:data.shape[0]]
+    datesTime=datesTime[0:(data.shape[0])]
     return datesTime,data
 
 def fixTimeBRAINemis(ds,data):
     dd = datePrepBRAINemis(ds)
     idx2Remove = np.array(dd.drop_duplicates().index)
-    data = data[idx2Remove[0:data.shape[0]]]
+    data = data[idx2Remove[0:(data.shape[0])]]
     datesTime = dd.drop_duplicates().reset_index(drop=True)
-    datesTime=datesTime[0:data.shape[0]]
+    datesTime=datesTime[0:(data.shape[0])]
     return datesTime,data
 
 def datePrepBRAINemis(ds):

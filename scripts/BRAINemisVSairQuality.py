@@ -41,7 +41,7 @@ NO2 = {
   #"Criteria": 260, # 260, 240, 220, 200
   "Criteria_ave": 1,
   #"criterias" : [260,240,220,200],
-  "criterias" : [240],
+  "criterias" : [200],
   "Criteria_average": '1-h average',
 }
 
@@ -101,7 +101,7 @@ PM25 = {
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[NO2]
+pollutants=[PM25]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 #------------------------------PROCESSING--------------------------------------
@@ -157,12 +157,18 @@ for kk,pol in enumerate(pollutants):
             if len(prefixed)>0:
                 ds1 = nc.Dataset(prefixed[0])
                 if ii==0:
-                    dataEMIS = ds1[polEmis][0:8710,:,:,:]
+                    dataEMIS = ds1[polEmis][:,:,:,:]
                 else:
-                    dataEMIS = dataEMIS+ds1[polEmis][0:8710,:,:,:]
+                    
+                    if dataEMIS.shape[0]<=ds1[polEmis].shape[0]:
+                        dataEMIS = dataEMIS+ds1[polEmis][0:dataEMIS.shape[0],:,:,:]
+                    else:
+                        dataEMIS = dataEMIS[0:ds1[polEmis].shape[0],:,:,:]
+                        dataEMIS = dataEMIS+ds1[polEmis]
+                        
                     
         os.chdir(os.path.dirname(BASE))
-        datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds1,dataEMIS[0:8710,:,:,:])
+        datesTimeEMIS, dataEMIS = BRAINutils.fixTimeBRAINemis(ds1,dataEMIS)
         
        
         # ========BRAIN files============
@@ -174,7 +180,9 @@ for kk,pol in enumerate(pollutants):
         prefixed = sorted([filename for filename in os.listdir(airQualityFolder) if filename.startswith(fileType)])
         ds = nc.Dataset(prefixed[0])
         # Selecting variable
-        dataBRAIN = ds[pol['tag']][0:8710]
+        dataBRAIN = ds[pol['tag']]
+
+            
         # Get datesTime and removing duplicates
         datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
         latBRAIN = ds['LAT'][:]
@@ -182,6 +190,14 @@ for kk,pol in enumerate(pollutants):
         latBRAINflat = latBRAIN.flatten()
         lonBRAINflat = lonBRAIN.flatten()
         os.chdir(os.path.dirname(BASE)+'/scripts')
+        
+        # if dataEMIS.shape[0]<=dataBRAIN.shape[0]:
+        #     dataBRAIN = dataBRAIN[0:dataEMIS.shape[0],:,:,:].copy()
+        #     datesTimeBRAIN = datesTimeBRAIN.iloc[0:dataEMIS.shape[0],:].copy()
+        # else:
+        #     dataEMIS = dataEMIS[0:dataBRAIN.shape[0],:,:,:].copy()
+        #     datesTimeEMIS = datesTimeEMIS.iloc[0:dataBRAIN.shape[0],:].copy()
+   
         
         lia, loc = ismember.ismember(datesTimeEMIS['datetime'].astype(str), datesTimeBRAIN['datetime'].astype(str))
         dataBRAIN = dataBRAIN[loc,:,:,:]
@@ -215,6 +231,9 @@ for kk,pol in enumerate(pollutants):
         s,cityMat=BRAINutils.dataINshape(lonBRAIN,latBRAIN,br)
         dataBRAIN[:,:,cityMat==0] = np.nan
         dataEMIS[:,:,cityMat==0] = np.nan
+        latBRAIN[cityMat==0]=np.nan
+        lonBRAIN[cityMat==0]=np.nan
+        
         
         # Removing 1% higher
         dataBRAIN = tst.timeseriesFiltering(dataBRAIN,99)
