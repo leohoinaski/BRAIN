@@ -190,7 +190,9 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
 
 
 #%%
-pollutants = [CO]
+pollutants = [NO2]
+useRawData = False
+
 tinit = datetime.datetime(2010, 1, 1, 0, 0)
 time0 = datetime.datetime(1, 1, 1, 0, 0)
 
@@ -201,6 +203,7 @@ for pol in pollutants:
     coarseDomainPath = dataFolder+'/' + coarseDomain
     refinedDomainPath = dataFolder+'/' + refinedDomain
     year = 2019
+    rootFolder =  os.path.dirname(os.path.dirname(BASE))
     
     
     # ========BRAIN files============
@@ -225,22 +228,26 @@ for pol in pollutants:
     prefixed = sorted([filename for filename in os.listdir(
              coarseDomainPath) if filename.startswith('SENTINEL_'+pol['tag'])])
 
-   # ds2 = nc.Dataset(coarseDomainPath+'/'+prefixed[0])
-   # matAve = ds2[pol['tag']][:]
-    if pol['tag']=='PM10':
+    if useRawData == True:
+        # ds2 = nc.Dataset(coarseDomainPath+'/'+prefixed[0])
+        # matAve = ds2[pol['tag']][:]
+        #if pol['tag']=='PM10':
         print('Openning netCDF files')
-        # Opening netCDF files
+            # Opening netCDF files
         if pol['tag']=='PM10':
             os.chdir(coarseDomainPath+'/AEROSOL')
             fileType='S5P_RPRO_L2__AER'
             prefixed = sorted([filename for filename in os.listdir(
                 coarseDomainPath+'/AEROSOL') if filename.startswith(fileType)])
+        elif pol['tag']=='NO2':
+            os.chdir(coarseDomainPath+'/'+pol['tag'])
+            fileType = 'S5P_OFFL_L2__'+pol['tag']
         else:
             os.chdir(coarseDomainPath+'/'+pol['tag'])
-            fileType = 'S5P_RPRO_L2__'+pol['tag']
+            fileType = 'S5P_OFFL_L2__'+pol['tag']
             
-            prefixed = sorted([filename for filename in os.listdir(
-                coarseDomainPath+'/'+pol['tag']) if filename.startswith(fileType)])
+        prefixed = sorted([filename for filename in os.listdir(
+            coarseDomainPath+'/'+pol['tag']) if filename.startswith(fileType)])
     
         matAve=np.empty((dailyData.shape[0],latBRAIN.shape[0],latBRAIN.shape[1]))
         matAve[:,:,:] = np.nan
@@ -250,7 +257,6 @@ for pol in pollutants:
             ds2 = nc.Dataset(pr)
             dataInBRAIN = np.empty(lonBRAINflat.shape[0])
             dataInBRAIN[:] = np.nan
-            
             try:
                 if pol['tag'] =='PM10':
                     time = ds2.groups['PRODUCT'].variables['time_utc'][:]
@@ -298,6 +304,7 @@ for pol in pollutants:
                         dataSentinelOriginal = ds2.groups['PRODUCT'].variables['ozone_total_vertical_column'][0, :,:].data.flatten()
     
                     dataSentinel = dataSentinelOriginal[~np.isnan(lats)]
+                    dataSentinel[dataSentinel<0]=np.nan
                     lats = lats[~np.isnan(lats)]
                     lons = lons[~np.isnan(lons)]
                     lats = lats[dataSentinel!=9.96921e+36]
@@ -311,6 +318,7 @@ for pol in pollutants:
                     grid_z0 = griddata(np.array([lons,lats]).transpose(), 
                                         dataSentinel, (lonBRAIN, latBRAIN), 
                                         method='linear',fill_value=np.nan, rescale=True)
+                    grid_z0[grid_z0<0]=np.nan
                     #grid_z0 = griddata(np.array([lonsOriginal,latsOriginal]).transpose(), 
                     #                   dataSentinelOriginal, (lonBRAIN, latBRAIN), method='nearest')
                  
@@ -351,7 +359,8 @@ for pol in pollutants:
             matAve2 = matAve[:,:,:].copy()
             matAve3 = matAve[:,:,:].copy()
     
-    shapeBorder = '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+    #shapeBorder = '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
+    shapeBorder = rootFolder+'/shapefiles/SouthAmerica.shp'
     borda = gpd.read_file(shapeBorder)
     
     if pol['tag']!='PM10':
@@ -366,13 +375,13 @@ for pol in pollutants:
 #%%
     
     #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
-    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_regions.shp'   
+    shape_path= rootFolder+'/shapefiles/BR_regions.shp'   
     if pol['tag']!='PM10':
         #bordAtrib='NM_PAIS'
         bordAtrib='NM_MUN'
         BRAINutils.BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,(10**4)*matAve2,dailyData[:,0,:,:],bordAtrib)
         
-        shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
+        shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
         bordAtrib='NM_PAIS'
         BRAINutils.BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,(10**4)*matAve2,dailyData[:,0,:,:],bordAtrib)
     else:
@@ -380,15 +389,15 @@ for pol in pollutants:
         bordAtrib='NM_MUN'
         BRAINutils.BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,matAve2,dailyData[:,0,:,:],bordAtrib)
         
-        shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
+        shape_path= rootFolder+'/shapefiles/BR_Pais_2022/BR_Pais_2022.shp' 
         bordAtrib='NM_PAIS'
         BRAINutils.BRAINscattersRegions(shape_path,BASE,pol,lonBRAIN,latBRAIN,matAve2,dailyData[:,0,:,:],bordAtrib)
 #%%
 
 
-    capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
+    capitals = pd.read_csv(rootFolder+'/BRAIN/data/BR_capitais.csv')  
     
-    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Municipios_2020.shp'
+    shape_path= rootFolder+'/shapefiles/BR_Municipios_2020.shp'
     
     cities = gpd.read_file(shape_path)
     cities.crs = "EPSG:4326"
@@ -400,15 +409,15 @@ for pol in pollutants:
     #cmap = 'YlOrRd'
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","cornsilk","yellow","darkred"])
     
-    # legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
-    # #legend ='BRAIN'
-    # for IBGE_CODE in capitals.IBGE_CODE:
-    #     IBGE_CODE=str(IBGE_CODE)
-    #     s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
-    #     #IBGE_CODE=1100205 #    
-    #     cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData2,datesTime,cityMat,s,IBGE_CODE)
-    #     #cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-    #     #                    xlon,ylat,None,
-    #     #                    os.path.dirname(BASE)+'/figures/',pol['tag'],'SENTINEL_'+str(IBGE_CODE))
+    legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
+    #legend ='BRAIN'
+    for IBGE_CODE in capitals.IBGE_CODE:
+        IBGE_CODE=str(IBGE_CODE)
+        s,cityMat,cityBuffer=citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE)
+        #IBGE_CODE=1100205 #    
+        cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData2,datesTime,cityMat,s,IBGE_CODE)
+        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+                            xlon,ylat,None,
+                            os.path.dirname(BASE)+'/figures/',pol['tag'],'SENTINEL_'+str(IBGE_CODE))
         
-    # os.chdir(os.path.dirname(BASE)+'/scripts')
+    os.chdir(os.path.dirname(BASE)+'/scripts')

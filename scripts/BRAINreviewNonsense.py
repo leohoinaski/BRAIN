@@ -170,7 +170,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                bbox_inches='tight',dpi=300)
     return matData.shape
 #%%
-pollutants=[O3]
+pollutants=[NO2]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -178,8 +178,8 @@ dataFolder = os.path.dirname(BASE)+'/data'
 brainFolder =  dataFolder+'/BRAIN'
 sentinelFolder = dataFolder+'/SENTINEL' 
 year = 2019
-
-shape_path= '/media/leohoinaski/HDD/BRAIN/data/AERONET/aeronet_points/aeronet_points.shp'
+rootFolder =  os.path.dirname(os.path.dirname(BASE))
+shape_path= rootFolder+'/BRAIN/data/AERONET/aeronet_points/aeronet_points.shp'
 aqs = gpd.read_file(shape_path)
 aqs.crs = "EPSG:4326"
 

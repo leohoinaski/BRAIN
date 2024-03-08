@@ -374,10 +374,10 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,
         ax.xaxis.set_tick_params(labelsize=7)
         ax.yaxis.set_tick_params(labelsize=8)
             
-        #ax.set_yscale('log')
-        #ax.set_xscale('log')
-        fig.tight_layout()
         ax.set_yscale('log')
+        ax.set_xscale('log')
+        fig.tight_layout()
+        #ax.set_yscale('log')
         #ax.set_xscale('log')
         fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsSENTINEL_scatter_'+sigla+'_'+pol['tag']+'.png', 
                     format="png",bbox_inches='tight',dpi=300)
@@ -414,7 +414,7 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,
         ax.xaxis.set_tick_params(labelsize=7)
         ax.yaxis.set_tick_params(labelsize=8)
         ax.set_yscale('log')
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
         fig.tight_layout()
         fig.savefig(os.path.dirname(BASE)+'/figures/BRAINvsSENTINEL_scatter_'+sigla+'_'+pol['tag']+'.png', 
                     format="png",bbox_inches='tight',dpi=300)
