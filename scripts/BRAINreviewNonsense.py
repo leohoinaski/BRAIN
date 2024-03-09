@@ -170,7 +170,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                bbox_inches='tight',dpi=300)
     return matData.shape
 #%%
-pollutants=[NO2]
+pollutants=[O3]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -224,6 +224,8 @@ for kk,pol in enumerate(pollutants):
     
     legend = 'SENTINEL/TROPOMI \n' +pol['Pollutant'] +' tropospheric column \n ($10^{-4}  mol.m^{-2}$)'
     #legend ='BRAIN'
+    aver=[]
+    stand=[]
     for aqm in aqs.Estacao1:
         s,cityMat,cityBuffer=BRAINutils.citiesBufferINdomain(lonBRAIN,latBRAIN,aqs,aqm,'Estacao1')
         #IBGE_CODE=1100205 #    
@@ -231,5 +233,7 @@ for kk,pol in enumerate(pollutants):
         cityData2,cityDataPoints2,cityDataFrame2,matData2= BRAINutils.dataINcity(dataSENTINEL,daily,cityMat,s,aqm)
         cityTimeSeries(cityDataFrame,(10**4)*cityDataFrame2,aqm,cmap,cmap2,legend,
                        lonBRAIN,latBRAIN,None,BASE,pol,24,aqm)
+        aver.append(np.nanmean(cityDataFrame))
+        stand.append(np.nanstd(cityDataFrame))
         
         
