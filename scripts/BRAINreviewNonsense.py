@@ -170,7 +170,7 @@ def cityTimeSeries(cityDataFrame,cityDataFrame2,IBGE_CODE,cmap,cmap2,legend,
                bbox_inches='tight',dpi=300)
     return matData.shape
 #%%
-pollutants=[O3]
+pollutants=[CO]
 
 #------------------------------PROCESSING--------------------------------------
 BASE = os.getcwd()
@@ -226,6 +226,8 @@ for kk,pol in enumerate(pollutants):
     #legend ='BRAIN'
     aver=[]
     stand=[]
+    mina=[]
+    maxa=[]
     for aqm in aqs.Estacao1:
         s,cityMat,cityBuffer=BRAINutils.citiesBufferINdomain(lonBRAIN,latBRAIN,aqs,aqm,'Estacao1')
         #IBGE_CODE=1100205 #    
@@ -235,5 +237,6 @@ for kk,pol in enumerate(pollutants):
                        lonBRAIN,latBRAIN,None,BASE,pol,24,aqm)
         aver.append(np.nanmean(cityDataFrame))
         stand.append(np.nanstd(cityDataFrame))
-        
+        mina.append(np.nanmin(cityDataFrame))
+        maxa.append(np.nanmax(cityDataFrame))
         
