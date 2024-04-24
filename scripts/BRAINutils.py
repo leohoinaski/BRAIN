@@ -420,3 +420,5 @@ def BRAINscattersRegions(shape_path,BASE,pol,xvMERRA,yvMERRA,dataMERRAfiltered,
                     format="png",bbox_inches='tight',dpi=300)
         #ax.set_yscale('log')
         #ax.set_xscale('log')
+        
+        
