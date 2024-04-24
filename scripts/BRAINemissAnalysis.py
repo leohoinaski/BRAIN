@@ -140,8 +140,8 @@ for count, fileType in enumerate(fileTypes):
         if len(prefixed)>0:
             ds = nc.Dataset(emisDataFolder+'/'+prefixed[0])
             # Selecting variable
-            data = ds[pol['tag']][:]
-            datesTime, data = BRAINutils.fixTimeBRAIN(ds,data)
+            dataOriginal = ds[pol['tag']][:]
+            datesTime, data = BRAINutils.fixTimeBRAIN(ds,dataOriginal)
             data = np.nansum(data,axis=0)[0,:,:]
             xlon = ds['LON'][:]
             ylat = ds['LAT'][:]
