@@ -180,55 +180,6 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         return matData.shape
 
 
-
-def cityTimeSeriesOnly(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-               xlon,ylat,criteria,folder,pol,aveTime,criteriaVal):
-    import matplotlib.dates as mdates
-
-    if len(matData.shape)==4:
-        aveFigData= np.nanmean(matData,axis=0)[0,:,:]
-    else:
-        aveFigData= np.nanmean(matData,axis=0)
-
-    if (np.nanmax(aveFigData)>0):
-
-        cityArea=cities[cities['CD_MUN']==str(IBGE_CODE)]
-        #cmap = plt.get_cmap(cmap,5)    
-        fig, ax = plt.subplots()
-        cm = 1/2.54  # centimeters in inches
-        fig.set_size_inches(14*cm, 7*cm)
-        # ax[1].fill_between(cityDataFrame.mean(axis=1).index,cityDataFrame.max(axis=1), cityDataFrame.min(axis=1),
-        #                  color=cmap(0.8),       # The outline color
-        #                  facecolor=cmap(0.8),
-        #                  edgecolor=None,
-        #                  alpha=0.2,label='Min-Max')          # Transparency of the fill
-        ax.plot(cityDataFrame.mean(axis=1).index,cityDataFrame.mean(axis=1),
-                   color=cmap(0.8),linewidth=1,label='Spatial average')
-        ax.xaxis.set_tick_params(labelsize=6)
-        ax.yaxis.set_tick_params(labelsize=6)
-        ax.set_ylim([np.nanmin(cityDataFrame.mean(axis=1))*0.95,
-                     np.max(cityDataFrame.mean(axis=1).values,
-                                )*1.05])
-        ax.set_xlim([cityDataFrame.index.min(),cityDataFrame.index.max()])
-        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
-        # set formatter
-        if (criteria!=None):
-            if (criteriaVal<np.max(cityDataFrame.mean(axis=1).values)):
-                ax.axhline(y=criteriaVal, color='yellow', linestyle='--',linewidth=1.5,
-                              label='Air quality standard')
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
-        for label in ax.get_xticklabels(which='major'):
-            label.set(rotation=30, horizontalalignment='right')
-        ax.legend(prop={'size': 6},frameon=False)
-        ax.set_ylabel(cityArea['NM_MUN'].to_string(index=False)+'\n'+legend,fontsize=6)
-        #ax.set_yscale('log')
- 
-        #ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-        ax.grid(color='gray',linewidth = "0.2",axis='y')
-        fig.tight_layout()
-        fig.savefig(folder+'/cityTimeSeriesONLY_'+pol+'_'+aveTime+'.png', format="png",
-                   bbox_inches='tight',dpi=300)
-        return matData.shape
 #%%
 def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE,atribute):
     s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
@@ -337,11 +288,8 @@ for kk,pol in enumerate(pollutants):
         s,cityMat,cityBuffer=citiesBufferINdomain(lonBRAIN,latBRAIN,cities,IBGE_CODE,'CD_MUN')
         #IBGE_CODE=1100205 #    
         cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTimeBRAIN,cityMat,s,IBGE_CODE)
-        # cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-        #                     lonBRAIN,latBRAIN,pol['Criteria_average'],
-        #                     os.path.dirname(BASE)+'/figures/BRAIN_CAPITALS/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
-        cityTimeSeriesOnly(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+        cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
                             lonBRAIN,latBRAIN,pol['Criteria_average'],
-                            os.path.dirname(BASE)+'/figures/BRAIN_CAPITALS/',
-                            pol['tag'],'BRAIN_'+str(IBGE_CODE),pol['Criteria'])
+                            os.path.dirname(BASE)+'/figures/BRAIN_CAPITALS/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
+
         del s,cityMat,cityBuffer,cityData,cityDataPoints,cityDataFrame,matData

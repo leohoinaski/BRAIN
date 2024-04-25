@@ -349,9 +349,9 @@ def spatialEmissFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,emissType,
     #cbar.ax.set_xscale('log')
     #cbar.update_ticks()
     #cbar.ax.locator_params(axis='both',nbins=5)
-    cbar.ax.set_xlabel(legend, rotation=0,fontsize=6)
+    cbar.ax.set_xlabel(legend, rotation=0,fontsize=10)
     cbar.ax.get_xaxis().labelpad = 2
-    cbar.ax.tick_params(labelsize=6)
+    cbar.ax.tick_params(labelsize=8)
     cbar.ax.minorticks_off() 
 
     br = gpd.read_file(borderShape)
@@ -381,7 +381,7 @@ def spatialEmissFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,emissType,
 def spatialMeteoFig(data,xlon,ylat,legend,cmap,borderShape,folder,pol,emissType):
     fig, ax = plt.subplots()
     cm = 1/2.54  # centimeters in inches
-    fig.set_size_inches(15*cm, 10*cm)
+    fig.set_size_inches((21/2)*cm, (30/3)*cm)
     cmap = plt.get_cmap(cmap, 6)
     #cmap.set_under('white')
     bounds = np.array([np.percentile(data[data>0],0.1),

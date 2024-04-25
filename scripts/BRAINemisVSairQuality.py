@@ -101,7 +101,7 @@ PM25 = {
 }
 
 pollutants=[NO2,SO2,O3,PM10,PM25]
-pollutants=[PM25]
+#pollutants=[PM25]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 #------------------------------PROCESSING--------------------------------------
@@ -124,7 +124,10 @@ except:
 #shape_path= rootFolder+'/shapefiles/Brasil.shp'
 #shape_path= '/media/leohoinaski/HDD/shapefiles/SouthAmerica.shp'
 #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Pais_2022/BR_Pais_2022.shp'
-shape_path= rootFolder+'/shapefiles/SC_Mesorregioes_2022/SC_Mesorregioes_2022.shp'
+#shape_path= rootFolder+'/shapefiles/SC_Mesorregioes_2022/SC_Mesorregioes_2022.shp'
+shape_path= rootFolder+'/shapefiles/BR_Municipios_2020.shp'
+
+
 dataShp = gpd.read_file(shape_path)
         
 print('Looping for each variable')
@@ -245,20 +248,20 @@ for kk,pol in enumerate(pollutants):
         
         # Figures
         # Average
-        legend = pol['Criteria_average'] + ' ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
-        #cmap = 'YlOrRd'
-        cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["royalblue",'lightskyblue',"azure","yellow","crimson","darkred"])
-        BRAINfigs.timeAverageFig(np.nanmax(dataBRAIN.data,axis=0)[0,:,:]*pol['conv'],lonBRAIN,latBRAIN,legend,cmap,
-                              dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'],
-                              domain)
+        # legend = pol['Criteria_average'] + ' ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
+        # #cmap = 'YlOrRd'
+        # cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["royalblue",'lightskyblue',"azure","yellow","crimson","darkred"])
+        # BRAINfigs.timeAverageFig(np.nanmax(dataBRAIN.data,axis=0)[0,:,:]*pol['conv'],lonBRAIN,latBRAIN,legend,cmap,
+        #                       dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'],
+        #                       domain)
         
-        # Exceedence
-        legend2 = pol['Criteria_average'] +' ' + pol['Pollutant'] + ' - violations'
-        #cmap = 'RdPu'
-        cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","yellow",'#E72C39',"darkred", 'purple'])
-        BRAINfigs.exceedanceFig(freqExcd[0,:,:],lonBRAIN,latBRAIN,legend2,cmap2,
-                             dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'],
-                             domain, pol['Criteria'])
+        # # Exceedence
+        # legend2 = pol['Criteria_average'] +' ' + pol['Pollutant'] + ' - violations'
+        # #cmap = 'RdPu'
+        # cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","yellow",'#E72C39',"darkred", 'purple'])
+        # BRAINfigs.exceedanceFig(freqExcd[0,:,:],lonBRAIN,latBRAIN,legend2,cmap2,
+        #                      dataShp,os.path.dirname(BASE)+'/figures/',pol['tag'],pol['Criteria_average'],
+        #                      domain, pol['Criteria'])
         
         
         # ------------Média dos eventos ao logo do ano em todo domínio-----------------  
@@ -268,7 +271,7 @@ for kk,pol in enumerate(pollutants):
         aveMeanEvents = np.nanpercentile(meanEvents,75)
         
         # Figura seleção da timeseries
-        BRAINfigs.timeseriesSelection(BASE,datesTimeBRAIN,meanEvents*pol['conv'],aveMeanEvents*pol['conv'],pol,domain)
+        #BRAINfigs.timeseriesSelection(BASE,datesTimeBRAIN,meanEvents*pol['conv'],aveMeanEvents*pol['conv'],pol,domain)
         
         # Detectando os eventos acima do percentil
         boolEvents = meanEvents>aveMeanEvents
@@ -298,7 +301,8 @@ for kk,pol in enumerate(pollutants):
         dataBoxPixel=[]
         statDf = pd.DataFrame()
         #statDf['UF']=dataShp['UF']
-        statDf['UF']=dataShp['NM_MESO']
+        #statDf['UF']=dataShp['NM_MESO']
+        statDf['MUN']=dataShp['NM_MUN']
         statDf['MAXEMIS'] = np.nan
         statDf['AVEEMIS'] = np.nan
         statDf['NcriticalEvents'] = np.nan
@@ -308,8 +312,8 @@ for kk,pol in enumerate(pollutants):
         
         # for ii,state in enumerate(dataShp['UF']):
         #     uf = dataShp[dataShp['UF']==state]
-        for ii,state in enumerate(dataShp['NM_MESO']):
-            uf = dataShp[dataShp['NM_MESO']==state]
+        for ii,state in enumerate(dataShp['NM_MUN']):
+            uf = dataShp[dataShp['NM_MUN']==state]
             sUF,cityMatUF=BRAINutils.dataINshape(lonBRAIN,latBRAIN,uf)
             dataEMISuf = dataEMIS[boolEvents,:,:,:].copy()
             dataBRAINuf = dataBRAIN[boolEvents,:,:,:].copy()
@@ -332,7 +336,7 @@ for kk,pol in enumerate(pollutants):
             
         del dataBRAINuf, dataEMISuf
         # Figura com estatistica das violações - emissão, número de eventos e número de pixels
-        BRAINfigs.exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel,domain)
+        #BRAINfigs.exceedingStats(BASE,dataBox,dataShp,pol,polEmis,ds1,dataBoxAQ,dataBoxPixel,domain)
         
         #%%
         #% Encontrando dados em cada quadrante
@@ -397,19 +401,19 @@ for kk,pol in enumerate(pollutants):
         
         del ds1, ds ,q1EMISmat,q2EMISmat,q3EMISmat,q4EMISmat,violDf,violAirQ,violEmis
         
-        BRAINfigs.QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
-                     pol,polEmis,minMeanEmis,dataBRAIN[boolEvents,:,:,:]*pol['conv'],
-                     dataEMIS[boolEvents,:,:,:],domain)
+        # BRAINfigs.QscatterAll(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
+        #              pol,polEmis,minMeanEmis,dataBRAIN[boolEvents,:,:,:]*pol['conv'],
+        #              dataEMIS[boolEvents,:,:,:],domain)
         
         del dataBRAIN, dataEMIS,lonBRAINflat,latBRAINflat
         
         # Figura scatter nos quadrantes
-        BRAINfigs.Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
-                     pol,polEmis,minMeanEmis,domain)
+        # BRAINfigs.Qscatter(BASE,q1EMIS,q1BRAIN,q2EMIS,q2BRAIN,q3EMIS,q3BRAIN,q4EMIS,q4BRAIN,
+        #              pol,polEmis,minMeanEmis,domain)
         
-        # Figura quadrantes no espaço
-        BRAINfigs.Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,
-                           pol,dataShp,domain)
+        # # Figura quadrantes no espaço
+        # BRAINfigs.Qspatial(BASE,rootFolder,lonBRAIN,latBRAIN,freQ1,freQ2,freQ3,freQ4,
+        #                    pol,dataShp,domain)
         
         # ESTATÍSTICAS Q4 - ETAPA1
         # Por estado
@@ -426,8 +430,8 @@ for kk,pol in enumerate(pollutants):
         #         statDf['MaxReduction'][ii] = 0
                 
         dataBoxPercentage=[]
-        for ii,state in enumerate(dataShp['NM_MESO']):
-            uf = dataShp[dataShp['NM_MESO']==state]
+        for ii,state in enumerate(dataShp['NM_MUN']):
+            uf = dataShp[dataShp['NM_MUN']==state]
             s,cityMatUF=BRAINutils.dataINshape(lonBRAIN,latBRAIN,uf)
             dataBoxPercentage.append(q4EMISmatE1[:,0:,cityMatUF==1][~np.isnan(q4EMISmatE1[:,0:,cityMatUF==1])])
             try:
@@ -439,9 +443,9 @@ for kk,pol in enumerate(pollutants):
                 
         statDf.to_csv(os.path.dirname(BASE)+'/tables'+'/statistics_'+domain+'_'+pol['tag']+'_'+domain+'_'+str(pol['Criteria'])+'.csv')
         
-        # Figura redução no Q4
-        BRAINfigs.reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,
-                              pol,dataBoxPercentage,dataShp,domain)
+        # # Figura redução no Q4
+        # BRAINfigs.reductionQ4(BASE,rootFolder,lonBRAIN,latBRAIN,q4EMISmatE1,polEmis,
+        #                       pol,dataBoxPercentage,dataShp,domain)
 
         
         del q4EMISmatE1,q1EMIS,q2EMIS,q3EMIS,q4EMIS,q1BRAIN,q2BRAIN,q3BRAIN,q4BRAIN

@@ -180,7 +180,7 @@ for count, fileType in enumerate(fileTypes):
             import matplotlib.pyplot as plt
             fig,ax = plt.subplots()
             cm = 1/2.54  # centimeters in inches
-            fig.set_size_inches(12*cm, 6*cm)
+            fig.set_size_inches((21/2)*cm, (9/2)*cm)
             ax.boxplot(dataUF,notch=True, patch_artist=True,
                         boxprops=dict(facecolor=colors2[count], color='black'),
                         #capprops=dict(color='#fcf803'),
@@ -190,18 +190,18 @@ for count, fileType in enumerate(fileTypes):
             ax.set_yscale('symlog')
             maximum = max(arr.max() for arr in dataUF)
             ax.set_ylim([0 ,maximum*1.1 ])
-            ax.set_ylabel(pol['Pollutant'] + '\n'+ emissType[count]+' emission' +  '\n ('+'$mol.year^{-1}$'+')',fontsize=8)
-            ax.set_xticklabels(dataShp['NM_MESO'].str.replace(' ','\n'),fontsize=8,rotation=30)
+            ax.set_ylabel(pol['Pollutant'] + '\n'+ emissType[count]+' emission' +  '\n ('+'$mol.year^{-1}$'+')',fontsize=9)
+            ax.set_xticklabels(dataShp['NM_MESO'].str.replace(' ','\n'),fontsize=8,rotation=45)
             ax.tick_params(axis='both', which='major', labelsize=8)
             fig.tight_layout()
             fig.savefig(emisDataFolder+'/EMISfigures/boxplotEmissions_'+fileType+'_'+pol['tag']+'.png',
                         dpi=300)
             
     
-        # # Saving data for each city
-        for IBGE_CODE in cities['CD_MUN']:
-            uf = cities[cities['CD_MUN']==IBGE_CODE]
-            cityData,cityDataPoints,cityDataFrame,matData = tst.dataINcity(dataOriginal,datesTime,cityMat0,s0,int(IBGE_CODE))
-            os.makedirs(emisDataFolder+'/EMIStables'+'/'+pol['tag'], exist_ok=True)
-            cityDataFrame.to_csv(emisDataFolder+'/EMIStables'+'/'+pol['tag']+'/'+fileType+'_'+pol['tag']+'_'+str(IBGE_CODE)+'.csv')
-        
+            # # # Saving data for each city
+            # for IBGE_CODE in cities['CD_MUN']:
+            #     uf = cities[cities['CD_MUN']==IBGE_CODE]
+            #     cityData,cityDataPoints,cityDataFrame,matData = tst.dataINcity(dataOriginal,datesTime,cityMat0,s0,int(IBGE_CODE))
+            #     os.makedirs(emisDataFolder+'/EMIStables'+'/'+pol['tag'], exist_ok=True)
+            #     cityDataFrame.to_csv(emisDataFolder+'/EMIStables'+'/'+pol['tag']+'/'+fileType+'_'+pol['tag']+'_'+str(IBGE_CODE)+'.csv')
+            

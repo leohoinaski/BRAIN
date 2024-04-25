@@ -71,7 +71,7 @@ PM25 = {
   "tag":'PM25',
 }
 
-pollutants=[CO,NO2,SO2,O3,PM10,PM25]
+pollutants=[NO2,SO2,O3,PM10,PM25]
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
@@ -167,13 +167,17 @@ for kk,pol in enumerate(pollutants):
     majorEmitter[cityMat==0] = np.nan
     majorEmitter[np.nansum(emisMax,axis=0)[0,:,:]<=0]=np.nan
     majorEmitters.append(majorEmitter)
-    
+    with open(os.path.dirname(BASE)+'/tables'+'/MajorMaxEmitter_'+pol['tag']+'_'+domain+'.npy', 'wb') as f:
+        np.save(f, majorEmitter)
+
     
     majorEmitterAve = np.argmax(np.vstack((emisAve)),axis=0).astype(float)
     majorEmitterAve[cityMat==0] = np.nan
     majorEmitterAve[np.nansum(emisAve,axis=0)[0,:,:]<=0]=np.nan
     majorEmittersAve.append(majorEmitterAve)
-    
+    with open(os.path.dirname(BASE)+'/tables'+'/MajorAveEmitter_'+pol['tag']+'_'+domain+'.npy', 'wb') as f:
+        np.save(f, majorEmitter)
+
     #%%
     #shape_path= rootFolder+'/shapefiles/BR_regions.shp'
     shape_path= rootFolder+'/shapefiles/Brasil.shp'
