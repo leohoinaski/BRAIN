@@ -198,10 +198,10 @@ for count, fileType in enumerate(fileTypes):
                         dpi=300)
             
     
-            # # # Saving data for each city
-            # for IBGE_CODE in cities['CD_MUN']:
-            #     uf = cities[cities['CD_MUN']==IBGE_CODE]
-            #     cityData,cityDataPoints,cityDataFrame,matData = tst.dataINcity(dataOriginal,datesTime,cityMat0,s0,int(IBGE_CODE))
-            #     os.makedirs(emisDataFolder+'/EMIStables'+'/'+pol['tag'], exist_ok=True)
-            #     cityDataFrame.to_csv(emisDataFolder+'/EMIStables'+'/'+pol['tag']+'/'+fileType+'_'+pol['tag']+'_'+str(IBGE_CODE)+'.csv')
+            # # Saving data for each city
+            for IBGE_CODE in cities['CD_MUN']:
+                uf = cities[cities['CD_MUN']==IBGE_CODE]
+                cityData,cityDataPoints,cityDataFrame,matData = tst.dataINcity(dataOriginal,datesTime,cityMat0,s0,int(IBGE_CODE))
+                os.makedirs(emisDataFolder+'/EMIStables'+'/'+pol['tag'], exist_ok=True)
+                cityDataFrame.to_csv(emisDataFolder+'/EMIStables'+'/'+pol['tag']+'/'+fileType+'_'+pol['tag']+'_'+str(IBGE_CODE)+'.csv')
             
