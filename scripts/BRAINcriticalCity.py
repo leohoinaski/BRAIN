@@ -23,8 +23,8 @@ NO2 = {
   "tag":'NO2',
   #"Criteria": 260, # 260, 240, 220, 200
   "Criteria_ave": 1,
-  #"criterias" : [260,240,220,200],
-  "criterias" : [200],
+  "criterias" : [260,240,220,200],
+  #"criterias" : [200],
   "Criteria_average": '1-h average',
 }
 
@@ -44,8 +44,8 @@ O3 = {
   "conv":1962 ,
   "tag":'O3',
   "Criteria_ave": 8,
-  #"criterias" : [140,130,120,100],
-  "criterias" : [100],
+  "criterias" : [140,130,120,100],
+  #"criterias" : [100],
   "Criteria_average": '8-h average',
 }
 
@@ -55,8 +55,8 @@ SO2 = {
   "conv": 2620,
   "tag":'SO2',
   "Criteria_ave": 24,
-  #"criterias" : [125,50,40,30,20],
-  "criterias" : [40],
+  "criterias" : [125,50,40,30,20],
+  #"criterias" : [40],
   "Criteria_average": '24-h average',
   
 }
@@ -67,8 +67,8 @@ PM10 = {
   "conv": 1,
   "tag":'PM10',
   "Criteria_ave": 24,
-  #"criterias" : [120,100,75,50,45],
-  "criterias" : [45],
+  "criterias" : [120,100,75,50,45],
+  #"criterias" : [45],
   "Criteria_average": '24-h average',
 }
 
@@ -78,8 +78,8 @@ PM25 = {
   "conv": 1,
   "tag":'PM25',
   "Criteria_ave": 24,
-  #"criterias" : [60,50,37,25,15],
-  "criterias" : [15],
+  "criterias" : [60,50,37,25,15],
+  #"criterias" : [15],
   "Criteria_average": '24-h average',
 }
 
@@ -93,6 +93,7 @@ shape = os.path.dirname(os.path.dirname(BASE))+'/shapefiles/SC_Municipios_2022/S
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
+pollutants=[PM10,PM25]
 
 def dataINshape(xlon,ylat,uf):
     #print(uf)

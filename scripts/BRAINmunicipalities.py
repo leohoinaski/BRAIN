@@ -26,12 +26,22 @@ from shapely.geometry import Point
 import pandas as pd
 import temporalStatistics as tst
 # -------------------------------INPUTS----------------------------------------
-BASE = os.getcwd()
-dataType = 'EMIS'
-dataFolder = os.path.dirname(BASE)+'/data/'+dataType
-year = 2020
+coarseDomain = 'MERRA'
+refinedDomain = 'BRAIN' 
+
+# Trim domain
+left = 40
+right = 20
+top=95
+bottom=20
+
+# left = 0
+# right = 0
+# top=0
+# bottom=0
 
 
+#%%
 NO2 = {
   "Pollutant": "$NO_{2}$",
   "Criteria": 0.097414,
@@ -92,7 +102,6 @@ PM25 = {
 
 pollutants = [NO2,O3,SO2,PM10,PM25]
 #pollutants = [CO]
-emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 
 def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
                xlon,ylat,criteria,folder,pol,aveTime):
@@ -180,6 +189,55 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         return matData.shape
 
 
+
+def cityTimeSeriesOnly(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+               xlon,ylat,criteria,folder,pol,aveTime,criteriaVal):
+    import matplotlib.dates as mdates
+
+    if len(matData.shape)==4:
+        aveFigData= np.nanmean(matData,axis=0)[0,:,:]
+    else:
+        aveFigData= np.nanmean(matData,axis=0)
+
+    if (np.nanmax(aveFigData)>0):
+
+        cityArea=cities[cities['CD_MUN']==str(IBGE_CODE)]
+        #cmap = plt.get_cmap(cmap,5)    
+        fig, ax = plt.subplots()
+        cm = 1/2.54  # centimeters in inches
+        fig.set_size_inches(14*cm, 7*cm)
+        # ax[1].fill_between(cityDataFrame.mean(axis=1).index,cityDataFrame.max(axis=1), cityDataFrame.min(axis=1),
+        #                  color=cmap(0.8),       # The outline color
+        #                  facecolor=cmap(0.8),
+        #                  edgecolor=None,
+        #                  alpha=0.2,label='Min-Max')          # Transparency of the fill
+        ax.plot(cityDataFrame.mean(axis=1).index,cityDataFrame.mean(axis=1),
+                   color=cmap(0.8),linewidth=1,label='Spatial average')
+        ax.xaxis.set_tick_params(labelsize=6)
+        ax.yaxis.set_tick_params(labelsize=6)
+        ax.set_ylim([np.nanmin(cityDataFrame.mean(axis=1))*0.95,
+                     np.max(cityDataFrame.mean(axis=1).values,
+                                )*1.05])
+        ax.set_xlim([cityDataFrame.index.min(),cityDataFrame.index.max()])
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
+        # set formatter
+        if (criteria!=None):
+            if (criteriaVal<np.max(cityDataFrame.mean(axis=1).values)):
+                ax.axhline(y=criteriaVal, color='yellow', linestyle='--',linewidth=1.5,
+                              label='Air quality standard')
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
+        for label in ax.get_xticklabels(which='major'):
+            label.set(rotation=30, horizontalalignment='right')
+        ax.legend(prop={'size': 6},frameon=False)
+        ax.set_ylabel(cityArea['NM_MUN'].to_string(index=False)+'\n'+legend,fontsize=6)
+        #ax.set_yscale('log')
+ 
+        #ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+        ax.grid(color='gray',linewidth = "0.2",axis='y')
+        fig.tight_layout()
+        fig.savefig(folder+'/cityTimeSeriesONLY_'+pol+'_'+aveTime+'.png', format="png",
+                   bbox_inches='tight',dpi=300)
+        return matData.shape
 #%%
 def citiesBufferINdomain(xlon,ylat,cities,IBGE_CODE,atribute):
     s = gpd.GeoSeries(map(Point, zip(xlon.flatten(), ylat.flatten())))
@@ -226,28 +284,22 @@ def dataINcity(aveData,datesTime,cityMat,s,IBGE_CODE):
 #pollutants=[CO]
 
 #------------------------------PROCESSING--------------------------------------
-
-if dataType =='EMIS':
-    baseFile = 'BRAIN_BASEMIS_BR_2019_'
-else:
-    baseFile = 'BRAIN_BASECONC_BR_'
-
+BASE = os.getcwd()
+dataFolder = os.path.dirname(BASE)+'/data'
+coarseDomainPath =  dataFolder+'/' + coarseDomain
+refinedDomain =  dataFolder+'/' + refinedDomain
+year = 2019
 
 print('Looping for each variable')
 for kk,pol in enumerate(pollutants):
     
     # ========BRAIN files============
-    os.chdir(dataFolder)
+    os.chdir(refinedDomain)
     print(pol)
     print('Openning netCDF files')
     # Opening netCDF files
-    if dataType== 'EMIS':
-        fileType='BRAIN_BASECONC_BR_'+pol['tag']+'_'+str(year)
-        prefixed = sorted([filename for filename in os.listdir(dataFolder) if filename.startswith(fileType)])
-    else:
-        fileType='BRAIN_BASECONC_BR_'+pol['tag']+'_'+str(year)
-        prefixed = sorted([filename for filename in os.listdir(dataFolder) if filename.startswith(fileType)])
-        
+    fileType='BRAIN_BASECONC_BR_'+pol['tag']+'_'+str(year)
+    prefixed = sorted([filename for filename in os.listdir(refinedDomain) if filename.startswith(fileType)])
     ds = nc.MFDataset(prefixed)
     # Selecting variable
     dataBRAIN = ds[pol['tag']][:]
@@ -273,8 +325,10 @@ for kk,pol in enumerate(pollutants):
     
     
     os.chdir(os.path.dirname(BASE))
-    capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
-    shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Municipios_2020.shp'
+    #capitals = pd.read_csv(os.path.dirname(BASE)+'/data/BR_capitais.csv')  
+    #shape_path= '/media/leohoinaski/HDD/shapefiles/BR_Municipios_2020.shp'
+    shape_path = os.path.dirname(os.path.dirname(BASE))+'/shapefiles/SC_Municipios_2022/SC_Municipios_2022.shp'
+
     #cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","pink","deeppink","purple"])
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["azure","lightgray","crimson","darkred"])
     legend = 'BRAIN ' +pol['Pollutant'] +' ('+ pol['Unit'] + ')'
@@ -282,14 +336,21 @@ for kk,pol in enumerate(pollutants):
     cities = gpd.read_file(shape_path)
     cities.crs = "EPSG:4326"
     del ds, dataBRAIN
-    
-    for IBGE_CODE in capitals.IBGE_CODE:
+    os.makedirs(os.path.dirname(BASE)+'/figures/BRAINmunicipalities', exist_ok=True)
+    os.makedirs(os.path.dirname(BASE)+'/tables'+'/'+pol['tag'], exist_ok=True)
+
+    for IBGE_CODE in cities['CD_MUN']:
         IBGE_CODE=str(IBGE_CODE)
         s,cityMat,cityBuffer=citiesBufferINdomain(lonBRAIN,latBRAIN,cities,IBGE_CODE,'CD_MUN')
         #IBGE_CODE=1100205 #    
         cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTimeBRAIN,cityMat,s,IBGE_CODE)
+        
         cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
                             lonBRAIN,latBRAIN,pol['Criteria_average'],
-                            os.path.dirname(BASE)+'/figures/BRAIN_CAPITALS/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
-
+                            os.path.dirname(BASE)+'/figures/BRAINmunicipalities/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
+        # cityTimeSeriesOnly(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
+        #                     lonBRAIN,latBRAIN,pol['Criteria_average'],
+        #                     os.path.dirname(BASE)+'/figures/BRAINmunicipalities/',
+        #                     pol['tag'],'BRAIN_'+str(IBGE_CODE),pol['Criteria'])
+        cityDataFrame.to_csv(os.path.dirname(BASE)+'/tables'+'/'+pol['tag']+'/'+pol['tag']+'_'+str(IBGE_CODE)+'.csv')
         del s,cityMat,cityBuffer,cityData,cityDataPoints,cityDataFrame,matData
