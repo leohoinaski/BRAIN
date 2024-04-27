@@ -42,63 +42,77 @@ bottom=20
 
 
 #%%
+
+
 NO2 = {
   "Pollutant": "$NO_{2}$",
-  "Criteria": 0.097414,
-  "Unit": 'ppm',
-  "Criteria_annual": 0.021266,
-  "Criteria_average": '1-h average',
+  "Unit": '$\u03BCg.m^{-3}$',
+  "conv": 1880,
   "tag":'NO2',
+  #"Criteria": 260, # 260, 240, 220, 200
   "Criteria_ave": 1,
+  "criterias" : [260,240,220,200],
+  "criteria" : 260,
+  "Criteria_average": '1-h average',
 }
 
 CO = {
   "Pollutant": "CO",
-  "Criteria": 9,
-  "Unit": 'ppm',
-  "Criteria_average": '8-h moving average',
+  "Unit": 'ppb',
+  "conv": 1000, # Conversão de ppm para ppb
   "tag":'CO',
   "Criteria_ave": 8,
+  "criterias" : [9000],
+  "criteria" : 9000,
+
+  "Criteria_average": '8-h average',
 }
 
 O3 = {
   "Pollutant": "$O_{3}$",
-  "Criteria":0.050961,
   "Unit": 'ppm',
-  "Criteria_average": '8-h moving average',
+  "conv":1962 ,
+  "tag":'O3',
   "Criteria_ave": 8,
-  "tag":'O3'
+  "criterias" : [140,130,120,100],
+  "criteria" : 140,
+  "Criteria_average": '8-h average',
 }
 
 SO2 = {
   "Pollutant": "$SO_{2}$",
-  "Criteria": 0.007636,
-  "Unit": 'ppm',
-  "Criteria_annual": 0.007636,
-  "Criteria_average": '24-h average',
+  "Unit": '$\u03BCg.m^{-3}$',
+  "conv": 2620,
+  "tag":'SO2',
   "Criteria_ave": 24,
-  "tag":'SO2'
+  "criterias" : [125,50,40,30,20],
+  "criteria" : 125,
+  "Criteria_average": '24-h average',
+  
 }
 
 PM10 = {
   "Pollutant": "$PM_{10}$",
-  "Criteria": 50,
   "Unit": '$\u03BCg.m^{-3}$',
-  "Criteria_annual": 20,
-  "Criteria_average": '24-h average',
+  "conv": 1,
   "tag":'PM10',
   "Criteria_ave": 24,
+  "criterias" : [120,100,75,50,45],
+  "criteria" : 120,
+  "Criteria_average": '24-h average',
 }
 
 PM25 = {
   "Pollutant": "$PM_{2.5}$",
-  "Criteria": 25,
   "Unit": '$\u03BCg.m^{-3}$',
-  "Criteria_annual": 10,
-  "Criteria_average": '24-h average',
+  "conv": 1,
   "tag":'PM25',
   "Criteria_ave": 24,
+  "criterias" : [60,50,37,25,15],
+  "criteria" : 60,
+  "Criteria_average": '24-h average',
 }
+
 
 pollutants = [NO2,O3,SO2,PM10,PM25]
 #pollutants = [CO]
@@ -302,7 +316,7 @@ for kk,pol in enumerate(pollutants):
     prefixed = sorted([filename for filename in os.listdir(refinedDomain) if filename.startswith(fileType)])
     ds = nc.MFDataset(prefixed)
     # Selecting variable
-    dataBRAIN = ds[pol['tag']][:]
+    dataBRAIN = ds[pol['tag']][:]*pol['conv']
     # Get datesTime and removing duplicates
     datesTimeBRAIN, dataBRAIN = BRAINutils.fixTimeBRAIN(ds,dataBRAIN)
     latBRAIN = ds['LAT'][:]
