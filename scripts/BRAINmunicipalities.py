@@ -361,7 +361,7 @@ for kk,pol in enumerate(pollutants):
         cityData,cityDataPoints,cityDataFrame,matData= dataINcity(aveData,datesTimeBRAIN,cityMat,s,IBGE_CODE)
         
         cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
-                            lonBRAIN,latBRAIN,pol['Criteria_average'],
+                            lonBRAIN,latBRAIN,pol['criteria'],
                             os.path.dirname(BASE)+'/figures/BRAINmunicipalities/',pol['tag'],'BRAIN_'+str(IBGE_CODE))
         # cityTimeSeriesOnly(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         #                     lonBRAIN,latBRAIN,pol['Criteria_average'],
