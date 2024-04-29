@@ -200,6 +200,7 @@ def cityTimeSeries(cityDataFrame,matData,cities,IBGE_CODE,cmap,legend,
         fig.tight_layout()
         fig.savefig(folder+'/cityTimeSeries_'+pol+'_'+aveTime+'.png', format="png",
                    bbox_inches='tight',dpi=300)
+        plt.close(fig)
         return matData.shape
 
 
