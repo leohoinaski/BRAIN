@@ -93,7 +93,8 @@ shape = os.path.dirname(os.path.dirname(BASE))+'/shapefiles/SC_Municipios_2022/S
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
-pollutants=[PM10,PM25]
+pollutants=[NO2,PM10,PM25]
+geoData = gpd.read_file(shape)
 
 def dataINshape(xlon,ylat,uf):
     #print(uf)
@@ -127,54 +128,55 @@ for pol in pollutants:
         with open(path, 'rb') as f:
             majorMax = np.load(f)
                 
-        geoData = gpd.read_file(shape)
+        #geoData = gpd.read_file(shape)
         grid = nc.Dataset(gridPath)
         lat = grid['LAT'][:]
         lon = grid['LON'][:]
         
-        geoData['CriticalPixels']=np.nan
-        geoData['CriticalEvents']=np.nan
-        geoData['MeanEf']=np.nan
-        geoData['MinEf']=np.nan
-        geoData['MaxEf']=np.nan
-        geoData['MeanEmis']=np.nan
-        geoData['MinEmis']=np.nan
-        geoData['MaxEmis']=np.nan
-        geoData['MajorAveVehicular']=np.nan
-        geoData['MajorAveFire']=np.nan
-        geoData['MajorAveIndustrial']=np.nan
-        geoData['MajorAveBiogenic']=np.nan
-        geoData['MajorMaxVehicular']=np.nan
-        geoData['MajorMaxFire']=np.nan
-        geoData['MajorMaxIndustrial']=np.nan
-        geoData['MajorMaxBiogenic']=np.nan
+        geoData['CriticalPixels_'+str(pol['criterias'][jj])]=np.nan
+        geoData['CriticalEvents_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MeanEf_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MinEf_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MaxEf_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MeanEmis_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MinEmis_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MaxEmis_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorAveVehicular_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorAveFire_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorAveIndustrial_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorAveBiogenic_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorMaxVehicular_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorMaxFire_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorMaxIndustrial_'+str(pol['criterias'][jj])]=np.nan
+        geoData['MajorMaxBiogenic_'+str(pol['criterias'][jj])]=np.nan
         for ii, uf in  geoData.iterrows():
             print(ii)
             s,cityMat = dataINshape(lon,lat,uf)
             critical = a[cityMat==1]
-            geoData['CriticalPixels'][ii] = np.nansum(critical)
+            geoData['CriticalPixels_'+str(pol['criterias'][jj])][ii] = np.nansum(critical)
             critical = c[:,0,cityMat==1]
-            geoData['CriticalEvents'][ii] = np.nansum(critical>0)
-            geoData['MeanEf'][ii] = np.nanmean(critical)
-            geoData['MinEf'][ii] = np.nanmin(critical)
-            geoData['MaxEf'][ii] = np.nanmax(critical)
+            geoData['CriticalEvents_'+str(pol['criterias'][jj])][ii] = np.nansum(critical>0)
+            geoData['MeanEf_'+str(pol['criterias'][jj])][ii] = np.nanmean(critical)
+            geoData['MinEf_'+str(pol['criterias'][jj])][ii] = np.nanmin(critical)
+            geoData['MaxEf_'+str(pol['criterias'][jj])][ii] = np.nanmax(critical)
             critical = b[:,0,cityMat==1]
-            geoData['MeanEmis'][ii] = np.nanmean(critical)
-            geoData['MinEmis'][ii] = np.nanmin(critical)
-            geoData['MaxEmis'][ii] = np.nanmax(critical)      
+            geoData['MeanEmis_'+str(pol['criterias'][jj])][ii] = np.nanmean(critical)
+            geoData['MinEmis_'+str(pol['criterias'][jj])][ii] = np.nanmin(critical)
+            geoData['MaxEmis_'+str(pol['criterias'][jj])][ii] = np.nanmax(critical)      
             critical = majorAve[cityMat==1]
-            geoData['MajorAveVehicular'][ii] = np.sum(critical==0)
-            geoData['MajorAveFire'][ii] = np.sum(critical==1)
-            geoData['MajorAveIndustrial'][ii] = np.sum(critical==2)
-            geoData['MajorAveBiogenic'][ii] = np.sum(critical==3)
+            geoData['MajorAveVehicular_'+str(pol['criterias'][jj])][ii] = np.sum(critical==0)
+            geoData['MajorAveFire_'+str(pol['criterias'][jj])][ii] = np.sum(critical==1)
+            geoData['MajorAveIndustrial_'+str(pol['criterias'][jj])][ii] = np.sum(critical==2)
+            geoData['MajorAveBiogenic_'+str(pol['criterias'][jj])][ii] = np.sum(critical==3)
             critical = majorMax[cityMat==1]
-            geoData['MajorMaxVehicular'][ii] = np.sum(critical==0)
-            geoData['MajorMaxFire'][ii] = np.sum(critical==1)
-            geoData['MajorMaxIndustrial'][ii] = np.sum(critical==2)
-            geoData['MajorMaxBiogenic'][ii] = np.sum(critical==3)
-        geoData.drop('geometry',axis=1).to_csv(tablepath+'/crititalCity_'+
-                                               pol['tag']+'_'+
-                                               str(pol['criterias'][jj])+'.csv') 
+            geoData['MajorMaxVehicular_'+str(pol['criterias'][jj])][ii] = np.sum(critical==0)
+            geoData['MajorMaxFire_'+str(pol['criterias'][jj])][ii] = np.sum(critical==1)
+            geoData['MajorMaxIndustrial_'+str(pol['criterias'][jj])][ii] = np.sum(critical==2)
+            geoData['MajorMaxBiogenic_'+str(pol['criterias'][jj])][ii] = np.sum(critical==3)
+    column_to_move = geoData.pop("geometry")
+    geoData["geometry"]= column_to_move
+    geoData.to_csv(tablepath+'/crititalCity_'+
+                                           pol['tag']+'.csv') 
         # fig ,ax = plt.subplots()
         # ax.pcolor(lon,lat,b[0,0,:,:])
         # geoData.boundary.plot(ax=ax)
