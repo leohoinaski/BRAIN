@@ -93,8 +93,8 @@ shape = os.path.dirname(os.path.dirname(BASE))+'/shapefiles/SC_Municipios_2022/S
 emisTypes = ['BRAVES','FINN','IND2CMAQ','MEGAN']
 emisNames = ['Vehicular', 'Fire', 'Industrial', 'Biogenic']
 colors =['#0c8b96','#f51b1b','#fcf803','#98e3ad']
-pollutants=[NO2,PM10,PM25]
-geoData = gpd.read_file(shape)
+pollutants=[NO2,PM10,PM25,O3]
+
 
 def dataINshape(xlon,ylat,uf):
     #print(uf)
@@ -115,6 +115,7 @@ def dataINshape(xlon,ylat,uf):
     return s,cityMat
 
 for pol in pollutants:
+    geoData = gpd.read_file(shape)
     for jj,pp in enumerate(pol['criterias']):
         path = Q4path+'/Q4_'+pol['tag']+'_SC_'+str(pol['criterias'][jj])+'.npy'
         with open(path, 'rb') as f:
